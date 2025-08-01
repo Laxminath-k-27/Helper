@@ -18,6 +18,22 @@
       <div *ngSwitchCase="0">
         <form [formGroup]="firstFormGroup">
 
+            <div style="text-align: center; margin: 20px;">
+              <button mat-fab type="button" color="warm" (click)="triggerFileInput(fileInput)"
+                [style.width.px]="120" [style.height.px]="120" [style.borderRadius.%]="50" style="overflow: hidden;">
+                <ng-container *ngIf="photoUrl; else iconOnly">
+                  <img [src]="photoUrl"  width="120" height="120" style="object-fit: cover;" />
+                </ng-container>
+                <ng-template #iconOnly>
+                  <mat-icon style="font-size: 40px;">Upload Image</mat-icon>
+                </ng-template>
+              </button>
+
+              <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+              <p style="font-size: 12px; color: gray;">Upload photo (.png, .jpeg) max size 5 MB</p>
+            </div>
+
+
             <mat-form-field appearance="outline">
                 <mat-label>Type of Service</mat-label>
                 <mat-select formControlName="services" multiple (selectionChange)="onSelectionChange($event)">
@@ -71,6 +87,39 @@
               </mat-select>
             </mat-form-field>
 
+            
+            <label style="margin-bottom: 8px; display: block;">Gender*</label>
+            <mat-radio-group formControlName="gender" style="display: flex; flex-direction: row; gap: 24px;">
+              <mat-radio-button value="Male">Male</mat-radio-button>
+              <mat-radio-button value="Female">Female</mat-radio-button>
+              <mat-radio-button value="Other">Other</mat-radio-button>
+            </mat-radio-group>
+
+            
+            <div style="display: flex; align-items: center;">
+              <mat-form-field appearance="outline" style="width: 120px;">
+                <!-- <mat-label>Prefix</mat-label> -->
+                <mat-select formControlName="phonePrefix">
+                  <mat-option *ngFor="let prefix of phonePrefixes" [value]="prefix">
+                    {{ prefix }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" style="flex: 1;">
+                <mat-label>Phone Number</mat-label>
+                <input
+                  matInput
+                  type="tel"
+                  formControlName="phoneNumber"
+                  placeholder="Enter phone number"
+                />
+                @if (firstFormGroup.get('phoneNumber')?.invalid && firstFormGroup.get('phoneNumber')?.touched) {
+                  <mat-error>Enter valid 10-digit phone number</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
 
             <mat-form-field appearance="outline" style="width: 100%;">
                 <mat-label>Email</mat-label>
@@ -81,6 +130,75 @@
             </mat-form-field>
 
             
+            <mat-form-field appearance="outline" style="width: 100%;">
+              <mat-label>Vehicle Type</mat-label>
+              <mat-select formControlName="vehicleType">
+                <mat-option *ngFor="let type of vehicleTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            @if (firstFormGroup.get('vehicleType')?.value !== 'none') {
+              <mat-form-field appearance="outline" style="width: 100%;">
+                <mat-label>Vehicle Number</mat-label>
+                <input matInput formControlName="vehicleNumber" placeholder="Enter vehicle number" required>
+                @if (firstFormGroup.get('vehicleNumber')?.invalid && firstFormGroup.get('vehicleNumber')?.touched) {
+                  <mat-error>Vehicle number is required</mat-error>
+                }
+              </mat-form-field>
+            }
+
+
+            <div style="text-align: center; margin: 20px;">
+              <button type="button" mat-raised-button color="primary"
+                style="border: 2px dotted #ccc; height: 120px; width: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
+                (click)="openKycUploadModal(kycDialog)">
+                <ng-container *ngIf="!kycFile; else showDoc">
+                  <mat-icon>add</mat-icon>
+                  <div style="font-size: 12px; color: gray;">Upload KYC</div>
+                </ng-container>
+                <ng-template #showDoc>
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <div style="font-size: 12px;">{{ kycFile?.name }}</div>
+                  <div style="font-size: 10px; color: gray;" *ngIf="kycFile">
+                    {{ (kycFile.size / 1024) | number:'1.2-2' }} KB
+                  </div>
+                  <div style="font-size: 10px; color: gray;" *ngIf="!kycFile">
+                    0.00 KB
+                  </div>
+
+                </ng-template>
+              </button>
+            </div>
+
+            <ng-template #kycDialog>
+              <h2 mat-dialog-title>Upload KYC Document</h2>
+              <mat-dialog-content style="display: flex; flex-direction: column; gap: 16px;">
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Document Type</mat-label>
+                  <mat-select formControlName="kycDocType">
+                    <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <input type="file" accept="application/pdf" (change)="onKycFileSelected($event)" />
+
+                <div *ngIf="selectedKycFile" style="font-size: 13px;">
+                  <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>
+                  {{ selectedKycFile.name }} ({{ (selectedKycFile.size / 1024).toFixed(2) }} KB)
+                </div>
+
+              </mat-dialog-content>
+
+              <mat-dialog-actions>
+                <button mat-button (click)="cancelKycFile()">Cancel</button>
+                <button mat-raised-button color="primary" (click)="saveKycFile()">Save</button>
+              </mat-dialog-actions>
+            </ng-template>
+
+
 
             <div style="margin-top: 16px;">
                 <button mat-raised-button color="primary" 
@@ -89,25 +207,62 @@
                 Next
                 </button>
             </div>
-
         </form>
       </div>
 
       <div *ngSwitchCase="1">
-        <form [formGroup]="secondFormGroup">
-          <h2>Fill out your address</h2>
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Address</mat-label>
-            <input matInput formControlName="secondCtrl" placeholder="Ex. 1 Main St, New York, NY" required>
-          </mat-form-field>
-          <div style="margin-top: 16px;">
-            <button mat-button (click)="stepper.previous()">Back</button>
-            <button mat-raised-button color="primary" 
-                    (click)="secondFormGroup.valid && stepper.next()" 
-                    [disabled]="!secondFormGroup.valid">
-              Next
-            </button>
-          </div>
+        <form [formGroup]="firstFormGroup">
+            <div style="text-align: center; margin: 20px;">
+              <button type="button" mat-raised-button color="primary"
+                style="border: 2px dotted #ccc; height: 120px; width: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
+                (click)="openOtherUploadModal(otherDialog)">
+                <ng-container *ngIf="!otherFile; else showDocOther">
+                  <mat-icon>add</mat-icon>
+                  <div style="font-size: 12px; color: gray;">Upload Other File</div>
+                </ng-container>
+                <ng-template #showDocOther>
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <div style="font-size: 12px;">{{ otherFile?.name }}</div>
+                  <div style="font-size: 10px; color: gray;" *ngIf="otherFile">
+                    {{ (otherFile.size / 1024) | number:'1.2-2' }} KB
+                  </div>
+                  <div style="font-size: 10px; color: gray;" *ngIf="!otherFile">
+                    0.00 KB
+                  </div>
+                </ng-template>
+              </button>
+
+              <ng-template #otherDialog>
+                <h2 mat-dialog-title>Upload Other Document</h2>
+                <mat-dialog-content style="display: flex; flex-direction: column; gap: 16px;">
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Document Type</mat-label>
+                    <mat-select formControlName="otherDocType">
+                      <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <input type="file" accept="application/pdf" (change)="onOtherFileSelected($event)" />
+
+                  <div *ngIf="selectedOtherFile" style="font-size: 13px;">
+                    <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>
+                    {{ selectedOtherFile.name }} ({{ (selectedOtherFile.size / 1024).toFixed(2) }} KB)
+                  </div>
+
+                </mat-dialog-content>
+
+                <mat-dialog-actions>
+                  <button mat-button (click)="cancelOtherFile()">Cancel</button>
+                  <button mat-raised-button color="primary" (click)="saveOtherFile()">Save</button>
+                </mat-dialog-actions>
+              </ng-template>
+              <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                <button mat-button color="primary" (click)="stepper.previous()">Previous</button>
+                <button mat-raised-button color="primary" (click)="stepper.next()">Next</button>
+              </div>
+            </div>
+
         </form>
       </div>
 
@@ -116,8 +271,10 @@
         <p>You have completed all the steps.</p>
         <div style="margin-top: 16px;">
           <button mat-button (click)="stepper.previous()">Back</button>
-          <button mat-raised-button color="accent" (click)="stepper.reset()">Reset</button>
+          <!-- <button mat-raised-button color="accent" (click)="stepper.reset()">Reset</button> -->
+           <button type="button" (click)="logging()">Submit</button>
         </div>
+
       </div>
 
     </div>
