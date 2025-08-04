@@ -1,12 +1,7 @@
-<h2>hello</h2>
-
-<p>add-helper works!</p>
-
-
 
 <div class="custom-stepper-container" style="max-width: 600px; margin: auto; padding: 24px;">
 
-  <mat-stepper orientation="vertical" [linear]="true" #stepper>
+  <mat-stepper orientation="vertical" [linear]="true" #stepper (selectionChange)="onStepperSelectionChange($event)">
     <mat-step label="Your Name"></mat-step>
     <mat-step label="Your Address"></mat-step>
     <mat-step label="Done"></mat-step>
@@ -98,7 +93,6 @@
             
             <div style="display: flex; align-items: center;">
               <mat-form-field appearance="outline" style="width: 120px;">
-                <!-- <mat-label>Prefix</mat-label> -->
                 <mat-select formControlName="phonePrefix">
                   <mat-option *ngFor="let prefix of phonePrefixes" [value]="prefix">
                     {{ prefix }}
@@ -183,7 +177,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <input type="file" accept="application/pdf" (change)="onKycFileSelected($event)" />
+                <input type="file" id="kycInput" accept="application/pdf" (change)="onKycFileSelected($event)" />
 
                 <div *ngIf="selectedKycFile" style="font-size: 13px;">
                   <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>
@@ -211,60 +205,56 @@
       </div>
 
       <div *ngSwitchCase="1">
-        <form [formGroup]="firstFormGroup">
-            <div style="text-align: center; margin: 20px;">
-              <button type="button" mat-raised-button color="primary"
-                style="border: 2px dotted #ccc; height: 120px; width: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
-                (click)="openOtherUploadModal(otherDialog)">
-                <ng-container *ngIf="!otherFile; else showDocOther">
-                  <mat-icon>add</mat-icon>
-                  <div style="font-size: 12px; color: gray;">Upload Other File</div>
-                </ng-container>
-                <ng-template #showDocOther>
-                  <mat-icon>picture_as_pdf</mat-icon>
-                  <div style="font-size: 12px;">{{ otherFile?.name }}</div>
-                  <div style="font-size: 10px; color: gray;" *ngIf="otherFile">
-                    {{ (otherFile.size / 1024) | number:'1.2-2' }} KB
-                  </div>
-                  <div style="font-size: 10px; color: gray;" *ngIf="!otherFile">
-                    0.00 KB
-                  </div>
-                </ng-template>
-              </button>
-
-              <ng-template #otherDialog>
-                <h2 mat-dialog-title>Upload Other Document</h2>
-                <mat-dialog-content style="display: flex; flex-direction: column; gap: 16px;">
-
-                  <mat-form-field appearance="outline">
-                    <mat-label>Document Type</mat-label>
-                    <mat-select formControlName="otherDocType">
-                      <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
-                    </mat-select>
-                  </mat-form-field>
-
-                  <input type="file" accept="application/pdf" (change)="onOtherFileSelected($event)" />
-
-                  <div *ngIf="selectedOtherFile" style="font-size: 13px;">
-                    <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>
-                    {{ selectedOtherFile.name }} ({{ (selectedOtherFile.size / 1024).toFixed(2) }} KB)
-                  </div>
-
-                </mat-dialog-content>
-
-                <mat-dialog-actions>
-                  <button mat-button (click)="cancelOtherFile()">Cancel</button>
-                  <button mat-raised-button color="primary" (click)="saveOtherFile()">Save</button>
-                </mat-dialog-actions>
+        <form [formGroup]="secondFormGroup">
+          <div style="text-align: center; margin: 20px;">
+            <button type="button" mat-raised-button color="primary"
+              style="border: 2px dotted #ccc; height: 120px; width: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column;"
+              (click)="openOtherUploadModal(otherDialog)">
+              <ng-container *ngIf="!otherFile; else showDocOther">
+                <mat-icon>add</mat-icon>
+                <div style="font-size: 12px; color: gray;">Upload Other File</div>
+              </ng-container>
+              <ng-template #showDocOther>
+                <mat-icon>picture_as_pdf</mat-icon>
+                <div style="font-size: 12px;">{{ otherFile?.name }}</div>
+                <div style="font-size: 10px; color: gray;" *ngIf="otherFile">
+                  {{ (otherFile.size / 1024) | number:'1.2-2' }} KB
+                </div>
               </ng-template>
-              <div style="display: flex; justify-content: space-between; margin-top: 24px;">
-                <button mat-button color="primary" (click)="stepper.previous()">Previous</button>
-                <button mat-raised-button color="primary" (click)="stepper.next()">Next</button>
-              </div>
-            </div>
+            </button>
 
+            <ng-template #otherDialog>
+              <h2 mat-dialog-title>Upload Other Document</h2>
+              <mat-dialog-content style="display: flex; flex-direction: column; gap: 16px;">
+                <mat-form-field appearance="outline">
+                  <mat-label>Document Type</mat-label>
+                  <mat-select formControlName="otherDocType">
+                    <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <input type="file" accept="application/pdf" (change)="onOtherFileSelected($event)" />
+
+                <div *ngIf="selectedOtherFile" style="font-size: 13px;">
+                  <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>
+                  {{ selectedOtherFile.name }} ({{ (selectedOtherFile.size / 1024).toFixed(2) }} KB)
+                </div>
+              </mat-dialog-content>
+
+              <mat-dialog-actions>
+                <button mat-button (click)="cancelOtherFile()">Cancel</button>
+                <button mat-raised-button color="primary" (click)="saveOtherFile()">Save</button>
+              </mat-dialog-actions>
+            </ng-template>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+              <button mat-button color="primary" (click)="stepper.previous()">Previous</button>
+              <button mat-raised-button color="primary" (click)="stepper.next()">Next</button>
+            </div>
+          </div>
         </form>
       </div>
+
 
       <div *ngSwitchCase="2">
         <h2>Done! 🎉</h2>
