@@ -24,7 +24,7 @@
                 </ng-template>
               </button>
 
-              <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+              <input #fileInput id="photoInput" type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
               <p style="font-size: 12px; color: gray;">Upload photo (.png, .jpeg) max size 5 MB</p>
             </div>
 
@@ -233,7 +233,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <input type="file" accept="application/pdf" (change)="onOtherFileSelected($event)" />
+                <input type="file" id="otherInput" accept="application/pdf" (change)="onOtherFileSelected($event)" />
 
                 <div *ngIf="selectedOtherFile" style="font-size: 13px;">
                   <mat-icon style="vertical-align: middle;">picture_as_pdf</mat-icon>

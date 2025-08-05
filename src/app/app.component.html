@@ -1,5 +1,84 @@
-<div>
-  <h1>Main page</h1>
-  <app-add-helper></app-add-helper>
-  <router-outlet></router-outlet>
+<div class="main-container">
+  <div *ngIf="!isAddHelperRoute()" class="home-container">
+    <div class="sidebar">
+      <h2>Helpers</h2>
+      <div *ngFor="let helper of helpers" class="helper-card" (click)="onClick(helper.employeeId)">
+        <div class="helper-div-1">
+          <img class="helper-pic" *ngIf="helper.photo" [src]="getPhotoUrl(helper.photo)">
+          <div class="helper-pic" *ngIf="!helper.photo">{{ getInitials(helper.fullName) }}</div>
+        </div>
+        <div class="helper-div-2">
+          <div class="helper-name">{{ helper.fullName }}</div>
+          <div class="helper-id">ID: {{ helper.employeeId }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>Main Page</h1>
+      <button [routerLink]="['/add-helper']">Click to add helper</button>
+
+      <div class="helper-detail-card" *ngIf="selectedHelper">
+
+        <div class="header">
+
+          <div class="avatar-section">
+            <div class="avatar" *ngIf="!selectedHelper.photo">{{ getInitials(selectedHelper.fullName) }}</div>
+            <img class="avatar-pic" *ngIf="selectedHelper.photo" [src]="getPhotoUrl(selectedHelper.photo)">
+            <div class="name-role">
+              <h2>{{ selectedHelper.fullName }}</h2>
+              <p>{{ selectedHelper.services[0] }}</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button mat-icon-button><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="deleteHelper(selectedHelper.employeeId)"><mat-icon>delete</mat-icon></button>
+          </div>
+
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Sections -->
+        <div class="detail-section">
+          <h3>EMPLOYEE ID</h3>
+          <div class="detail-grid">
+            <div>Identification Card</div>
+            <div><a [href]="getFileUrl(selectedHelper.kycDocument)" target="_blank">View</a></div>
+
+            <div>Employee Code</div>
+            <div>{{ selectedHelper.employeeId }}</div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>PERSONAL DETAILS</h3>
+          <div class="detail-grid">
+            <div>Gender</div><div>{{ selectedHelper.gender }}</div>
+            <div>Language(s)</div><div>{{ selectedHelper.languages.join(', ') }}</div>
+            <div>Mobile No.</div><div>{{ selectedHelper.phonePrefix }} {{ selectedHelper.phoneNumber }}</div>
+            <div>Email ID</div><div>{{ selectedHelper.email || '-' }}</div>
+            <div>KYC Document</div>
+            <div><a [href]="getFileUrl(selectedHelper.kycDocument)" target="_blank">View</a></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>SERVICE DETAILS</h3>
+          <div class="detail-grid">
+            <div>Type</div><div>{{ selectedHelper.services[0] }}</div>
+            <div>Organization</div><div>{{ selectedHelper.organization }}</div>
+            <div>Joined On</div><div>{{ formatDate(selectedHelper.createdAt) }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div *ngIf="isAddHelperRoute()" class="form-container">
+    <button [routerLink]="['../']">Go to Home</button>
+    <router-outlet></router-outlet>
+  </div>
 </div>

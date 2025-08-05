@@ -13,6 +13,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -68,7 +69,8 @@ export class AddHelperComponent {
 
   constructor(private _formBuilder: FormBuilder, 
               private dialog: MatDialog,
-              private http: HttpClient) {}
+              private http: HttpClient,
+              private router: Router) {}
 
   firstFormGroup = this._formBuilder.group({
     fullName: ['', Validators.required],
@@ -187,6 +189,7 @@ export class AddHelperComponent {
 
   cancelKycFile(): void {
     this.selectedKycFile = null;
+    this.kycFile = null;
     this.firstFormGroup.patchValue({
       kycDocument: null,
       kycDocType: ''
@@ -244,34 +247,52 @@ export class AddHelperComponent {
 submitForm(): void {
   const formData = new FormData();
 
-  formData.append('fullName', this.firstFormGroup.get('fullName')?.value ?? ' ');
-  formData.append('email', this.firstFormGroup.get('email')?.value ?? ' ');
-  formData.append('phone', this.firstFormGroup.get('phone')?.value ?? ' ');
+  const firstControls = this.firstFormGroup.controls;
+  formData.append('fullName', firstControls['fullName'].value ?? '');
+  formData.append('email', firstControls['email'].value ?? '');
+  formData.append('services', JSON.stringify(firstControls['services'].value ?? []));
+  formData.append('organization', firstControls['organization'].value ?? '');
+  formData.append('languages', JSON.stringify(firstControls['languages'].value ?? []));
+  formData.append('gender', firstControls['gender'].value ?? '');
+  formData.append('phonePrefix', firstControls['phonePrefix'].value ?? '');
+  formData.append('phoneNumber', firstControls['phoneNumber'].value ?? '');
+  formData.append('vehicleType', firstControls['vehicleType'].value ?? '');
+  formData.append('vehicleNumber', firstControls['vehicleNumber'].value ?? '');
+  formData.append('kycDocType', firstControls['kycDocType'].value ?? '');
 
-  const photoFile = this.firstFormGroup.get('photo')?.value;
-  const kyc = this.firstFormGroup.get('kycDocument')?.value;
+  const photoFile = firstControls['photo'].value;
+  const kycFile = firstControls['kycDocument'].value;
 
-  if (photoFile) {
-    formData.append('photo', photoFile);
-  }
+  if (photoFile) formData.append('photo', photoFile);
+  if (kycFile) formData.append('kycDocument', kycFile);
 
-  if (kyc) {
-    formData.append('kyc', kyc);
-  }
+  const secondControls = this.secondFormGroup.controls;
+  formData.append('otherDocType', secondControls['otherDocType'].value ?? '');
+
+  const otherFile = secondControls['otherDocument'].value;
+  if (otherFile) formData.append('otherDocument', otherFile);
 
   this.http.post('http://localhost:3000/api/helpers', formData).subscribe({
     next: (res) => {
+
       console.log('Saved!', res);
+
       this.firstFormGroup.reset();
+      this.secondFormGroup.reset();
+
       this.selectedKycFile = null;
       this.kycFile = null;
+      this.photoUrl = null;
 
-      const kycInput = document.getElementById('kycInput') as HTMLInputElement;
-      if (kycInput) kycInput.value = '';
-
-      this.photoUrl=''
+      const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
+      fileInputs.forEach((id) => {
+        const el = document.getElementById(id) as HTMLInputElement;
+        if (el) el.value = '';
+      });
       
       this.stepper.reset();
+
+      this.router.navigate(['../']);
     },
     error: (err) => console.error('Failed to save', err)
   });
