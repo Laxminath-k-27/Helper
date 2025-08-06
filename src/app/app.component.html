@@ -1,5 +1,5 @@
 <div class="main-container">
-  <div *ngIf="!isAddHelperRoute()" class="home-container">
+  <div *ngIf="!isOtherRoute()" class="home-container">
     <div class="sidebar">
       <h2>Helpers</h2>
       <div *ngFor="let helper of helpers" class="helper-card" (click)="onClick(helper.employeeId)">
@@ -32,7 +32,7 @@
           </div>
 
           <div class="actions">
-            <button mat-icon-button><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button>
             <button mat-icon-button (click)="deleteHelper(selectedHelper.employeeId)"><mat-icon>delete</mat-icon></button>
           </div>
 
@@ -77,8 +77,9 @@
     </div>
   </div>
 
-  <div *ngIf="isAddHelperRoute()" class="form-container">
+  <div *ngIf="isOtherRoute()" class="form-container">
     <button [routerLink]="['../']">Go to Home</button>
-    <router-outlet></router-outlet>
   </div>
+
+  <router-outlet></router-outlet>
 </div>

@@ -22,7 +22,7 @@ import { MatIcon } from '@angular/material/icon';
 export class AppComponent implements OnInit{
     title = 'HelperModule';
     helpers : any [] = []
-    selectedHelper: any;
+    selectedHelper: any = null;
 
     constructor(public router: Router,
                 private listService: ListServiceService ){}
@@ -36,8 +36,11 @@ export class AppComponent implements OnInit{
       .pipe(    // to apply operators to the stream
         filter(event => event instanceof NavigationEnd)   // normal filter for checking whether event is the NavigationEnd instance
       ).subscribe(() => {
-        if (!this.isAddHelperRoute()) {
+        if (!this.isOtherRoute()) {
+          // this.selectedHelper = null;
           this.fetchHelpers();
+          // this.onClick(this.helpers[0].employedId)
+          
         }
       });
     }
@@ -46,11 +49,14 @@ export class AppComponent implements OnInit{
       this.listService.getAllHelpers().subscribe(data=>{
         console.log(data);
         this.helpers=data;
+        console.log(this.helpers[0].employeeId)
+        this.onClick(this.helpers[0].employeeId)
       });
     }
 
-    isAddHelperRoute(){
-      return this.router.url.includes('/add-helper')
+    isOtherRoute(){
+      // return this.router.url.includes('/add-helper') || this.router.url.includes('/edit-helper');
+      return this.router.url !== '/'
     }
 
     onClick(employedId: string){
@@ -93,6 +99,10 @@ export class AppComponent implements OnInit{
           this.fetchHelpers();
         }
       });
+    }
+
+    clicked(){
+      console.log("clicked")
     }
 
 }

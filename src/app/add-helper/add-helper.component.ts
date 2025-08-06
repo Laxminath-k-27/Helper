@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, Validators, FormBuilder, FormGroup, FormControl} from '@angular/forms';
 import { STEPPER_GLOBAL_OPTIONS, StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
@@ -46,7 +46,6 @@ import { Router } from '@angular/router';
   styleUrls: ['./add-helper.component.scss']
 })
 
-// ... imports remain unchanged
 export class AddHelperComponent {
   servicesList: string[] = ['Maid','Cook','Driver','Electrician','Plumber','Gardener','Painter','Carpenter','Mechanic'];
   languagesList: string[] = ['Hindi', 'English', 'Telugu', 'Tamil', 'Marathi'];
@@ -80,7 +79,7 @@ export class AddHelperComponent {
     languages: [[] as string[], Validators.required],
     gender: ['', Validators.required],
     phonePrefix: ['+91', Validators.required],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+    phoneNumber: ['', [Validators.required]],
     vehicleType: ['none'],
     vehicleNumber: [''],
     photo: [null as File | null],
@@ -142,30 +141,26 @@ export class AddHelperComponent {
     fileInput.click();
   }
 
-  onFileSelected(event: Event): void {
+  onFileSelected(event: Event){
   const input = event.target as HTMLInputElement;
 
   if (input.files && input.files.length > 0) {
     const file = input.files[0];
 
-    // Store the File object in the form group control
     this.firstFormGroup.get('photo')?.setValue(file);
 
-    // Read and preview the file (as base64)
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result;
       if (typeof result === 'string') {
-        this.photoUrl = result; // Store base64 string for preview
+        this.photoUrl = result; 
       }
     };
     reader.readAsDataURL(file);
   }
 }
 
-
-
-  openKycUploadModal(templateRef: any): void {
+  openKycUploadModal(templateRef: any){
     this.kycDialogRef = this.dialog.open(templateRef, {
       width: '400px',
       disableClose: true
@@ -180,7 +175,7 @@ export class AddHelperComponent {
     }
   }
 
-  saveKycFile(): void {
+  saveKycFile(){
     if (this.firstFormGroup.get('kycDocType')?.value && this.selectedKycFile) {
       this.kycFile = this.selectedKycFile;
       this.kycDialogRef.close();
@@ -204,7 +199,6 @@ export class AddHelperComponent {
   openOtherUploadModal(templateRef: any): void {
     this.otherDialogRef = this.dialog.open(templateRef, {
       width: '600px',
-
       disableClose: true
     });
   }
@@ -238,7 +232,7 @@ export class AddHelperComponent {
   }
 
   // for preventing navigation using stepper
-  onStepperSelectionChange(event: StepperSelectionEvent): void {
+  onStepperSelectionChange(event: StepperSelectionEvent){
   if (event.previouslySelectedIndex !== event.selectedIndex) {
     this.stepper.selectedIndex = event.previouslySelectedIndex;
   }
