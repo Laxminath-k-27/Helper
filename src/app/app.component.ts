@@ -3,8 +3,15 @@ import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router
 import { NgIf, NgFor } from '@angular/common';
 import { ListServiceService } from './services/list-service.service';
 import { filter } from 'rxjs/operators';
-import {MatDividerModule} from '@angular/material/divider'
+import { MatDividerModule } from '@angular/material/divider'
 import { MatIcon } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatCardModule } from '@angular/material/card';
+import { FormControl, FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 
 @Component({
@@ -15,7 +22,14 @@ import { MatIcon } from '@angular/material/icon';
               NgIf, 
               NgFor,
               MatDividerModule,
-              MatIcon],
+              MatIcon,
+              MatToolbarModule,
+              MatSelectModule,
+              MatCardModule,
+              FormsModule,
+              MatInputModule,
+              MatIconModule,
+              MatButtonModule],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })
@@ -23,13 +37,22 @@ export class AppComponent implements OnInit{
     title = 'HelperModule';
     helpers : any [] = []
     selectedHelper: any = null;
+    searchQuery: string = '';
+    totalHelperCount: number = 0;
+    gotTotalHelpers: boolean = false;
+    helperCount: number = 0;
+    sortBy= new FormControl();
+    filterBy = new FormControl();
 
     constructor(public router: Router,
                 private listService: ListServiceService ){}
 
 
     ngOnInit(){
-      this.fetchHelpers();
+
+      this.getTotalHelperCount()
+
+      // this.fetchHelpers();
       
       // this event runs regardless of ngOnIni
       this.router.events    // observable stream
@@ -45,13 +68,34 @@ export class AppComponent implements OnInit{
       });
     }
 
+    getTotalHelperCount(){
+      this.fetchHelpers();
+    }
+
     fetchHelpers(){
       this.listService.getAllHelpers().subscribe(data=>{
         console.log(data);
         this.helpers=data;
         console.log(this.helpers[0].employeeId)
         this.onClick(this.helpers[0].employeeId)
+
+        if(!this.gotTotalHelpers){
+          this.totalHelperCount = this.helpers.length
+          this.gotTotalHelpers = true;
+        }
       });
+    }
+
+    fetchBySearch(){
+      if(this.searchQuery){
+        this.listService.getHelpersBySearch(this.searchQuery).subscribe(data => {
+          this.helpers = data;
+          console.log(this.helpers[0])
+          this.onClick(this.helpers[0].employeeId);
+        })
+      }else{
+        this.fetchHelpers()
+      }
     }
 
     isOtherRoute(){
@@ -64,7 +108,8 @@ export class AppComponent implements OnInit{
       if(employedId){
         this.listService.getHelperById(employedId).subscribe(data => {
           this.selectedHelper=data.data[0]
-          console.log(this.selectedHelper)
+          console.log("from onClick "+this.selectedHelper)
+          this.helperCount = this.helpers.length
         })
       }
     }

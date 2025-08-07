@@ -1,7 +1,48 @@
 <div class="main-container">
+
+  <mat-toolbar>
+    <span>Helpers</span>
+  </mat-toolbar>
+
+   <mat-card class="controls-bar">
+    <div class="controls-grid">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput placeholder="Name, EmployeeId, Phone" [(ngModel)]="searchQuery" (ngModelChange)="fetchBySearch()">
+      </mat-form-field>
+
+      <div>
+        <p>{{totalHelperCount}}</p>
+      </div>
+
+      <!-- <mat-form-field appearance="outline">
+        <mat-label>Sort By</mat-label>
+        <mat-select [(ngModel)]="sortBy">
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="date">Date Joined</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Filter By</mat-label>
+        <mat-select [(ngModel)]="filterBy">
+          <mat-option value="gender:male">Male</mat-option>
+          <mat-option value="gender:female">Female</mat-option>
+          <mat-option value="service:maid">Maid</mat-option>
+          <mat-option value="service:cook">Cook</mat-option>
+        </mat-select>
+      </mat-form-field> -->
+
+      <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
+        Add Helper
+      </button>
+
+    </div>
+  </mat-card>
+
   <div *ngIf="!isOtherRoute()" class="home-container">
     <div class="sidebar">
-      <h2>Helpers</h2>
       <div *ngFor="let helper of helpers" class="helper-card" (click)="onClick(helper.employeeId)">
         <div class="helper-div-1">
           <img class="helper-pic" *ngIf="helper.photo" [src]="getPhotoUrl(helper.photo)">
