@@ -4,25 +4,36 @@
     <span>Helpers</span>
   </mat-toolbar>
 
-   <mat-card class="controls-bar">
-    <div class="controls-grid">
+   <mat-card class="controls-bar" id="1">
+    <div id="2" class="controls-grid" style="display: flex; gap: 8px; align-items: center;">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Search</mat-label>
-        <input matInput placeholder="Name, EmployeeId, Phone" [(ngModel)]="searchQuery" (ngModelChange)="fetchBySearch()">
+      <mat-form-field id="3" appearance="outline" style="margin: 10px;">
+        <mat-label id="4" >Search</mat-label>
+        <input id="5" matInput placeholder="Name, EmployeeId, Phone" 
+                [(ngModel)]="searchQuery" 
+                (ngModelChange)="fetchBySearch()"
+                (focus) = "searchFocused = true"
+                (blur) = "searchFocused = false">
       </mat-form-field>
 
-      <div>
-        <p>{{totalHelperCount}}</p>
+      <div >
+        <p *ngIf="searchFocused">{{helperCount}} of </p>
+        <p >{{totalHelperCount}}</p>
       </div>
 
-      <!-- <mat-form-field appearance="outline">
-        <mat-label>Sort By</mat-label>
-        <mat-select [(ngModel)]="sortBy">
-          <mat-option value="name">Name</mat-option>
-          <mat-option value="date">Date Joined</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <button mat-raised-button [matMenuTriggerFor]="sortMenu">
+        Sort By
+      </button>
+
+      <mat-menu #sortMenu="matMenu">
+        <button mat-menu-item (click)="sortHelpers('name')">
+          Sort by Name
+        </button>
+        <button mat-menu-item (click)="sortHelpers('date')">
+          Sort by Date Joined
+        </button>
+      </mat-menu>
+
 
       <mat-form-field appearance="outline">
         <mat-label>Filter By</mat-label>
@@ -32,7 +43,7 @@
           <mat-option value="service:maid">Maid</mat-option>
           <mat-option value="service:cook">Cook</mat-option>
         </mat-select>
-      </mat-form-field> -->
+      </mat-form-field> 
 
       <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
         Add Helper

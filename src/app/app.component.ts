@@ -12,7 +12,7 @@ import { FormControl, FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-
+import { MatMenuModule} from '@angular/material/menu'
 
 @Component({
     selector: 'app-root',
@@ -29,7 +29,8 @@ import { MatButtonModule } from '@angular/material/button';
               FormsModule,
               MatInputModule,
               MatIconModule,
-              MatButtonModule],
+              MatButtonModule,
+              MatMenuModule],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })
@@ -43,6 +44,7 @@ export class AppComponent implements OnInit{
     helperCount: number = 0;
     sortBy= new FormControl();
     filterBy = new FormControl();
+    searchFocused: boolean = false;
 
     constructor(public router: Router,
                 private listService: ListServiceService ){}
@@ -90,8 +92,12 @@ export class AppComponent implements OnInit{
       if(this.searchQuery){
         this.listService.getHelpersBySearch(this.searchQuery).subscribe(data => {
           this.helpers = data;
-          console.log(this.helpers[0])
-          this.onClick(this.helpers[0].employeeId);
+          console.log("setch "+this.helpers[0])
+          if(this.helpers.length > 0){
+            this.onClick(this.helpers[0].employeeId);
+          }else{
+            this.noHelpers();
+          }
         })
       }else{
         this.fetchHelpers()
@@ -110,9 +116,30 @@ export class AppComponent implements OnInit{
           this.selectedHelper=data.data[0]
           console.log("from onClick "+this.selectedHelper)
           this.helperCount = this.helpers.length
+
         })
       }
     }
+
+    noHelpers(){
+      this.selectedHelper = null;
+      this.helperCount = 0;
+    }
+
+    sortHelpers(criterion: 'name' | 'date') {
+      if (criterion === 'name') {
+        this.helpers.sort((a, b) =>
+          a.fullName.toLowerCase().localeCompare(b.fullName.toLowerCase())
+        );
+        this.onClick(this.helpers[0].employeeId);
+      } else if (criterion === 'date') {
+        this.helpers.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        this.onClick(this.helpers[0].employeeId);
+      }
+    }
+
 
     getInitials(name: string): string {
       const parts = name.split(' ');

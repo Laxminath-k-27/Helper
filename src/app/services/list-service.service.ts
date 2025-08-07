@@ -21,7 +21,7 @@ export class ListServiceService {
   }
 
   getHelpersBySearch(searchString: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/search/${searchString}`);
+    return this.http.get<any>(`${this.apiUrl}/search/${encodeURIComponent(searchString)}`);
   }
 
   deleteHelper(employeeId: string): Observable<any>{
