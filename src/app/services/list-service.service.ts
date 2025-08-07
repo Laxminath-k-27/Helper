@@ -17,10 +17,14 @@ export class ListServiceService {
   }
 
   getHelperById(employeeId: string): Observable<any> {
-    return this.http.get<any>(`http://localhost:3000/api/helpers/${employeeId}`);
+    return this.http.get<any>(`${this.apiUrl}/${employeeId}`);
+  }
+
+  getHelpersBySearch(searchString: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/search/${searchString}`);
   }
 
   deleteHelper(employeeId: string): Observable<any>{
-    return this.http.delete<any>(`http://localhost:3000/api/helpers/${employeeId}`)
+    return this.http.delete<any>(`${this.apiUrl}/${employeeId}`);
   }
 }
