@@ -89,12 +89,12 @@ createForm(helper: any){
   this.form = this.fb.group({
       fullName: [helper.fullName, Validators.required],
       email: [helper.email, [Validators.required, Validators.email]],
-      services: [helper.services as string[], Validators.required],
+      services: [helper.services, Validators.required],
       organization: [helper.organization, Validators.required],
       languages: [helper.languages as string[], Validators.required],
       gender: [helper.gender,Validators.required],
       phonePrefix: [helper.phonePrefix, Validators.required],
-      phoneNumber: [helper.phoneNumber, [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+      phoneNumber: [helper.phoneNumber, [Validators.required]],
       vehicleType: [helper.vehicleType],
       vehicleNumber: [helper.vehicleNumber],
       photo: [helper.photo],
@@ -178,28 +178,6 @@ createForm(helper: any){
       }
 
       reader.readAsDataURL(file);
-    }
-  }
-
-  onSelectionChange(event: MatSelectChange){
-    this.form.patchValue({ services: event.value })
-  }
-
-  isAllSelected(){
-    const selected = this.form.get('services')?.value || [];
-    return this.servicesList.every(service => selected.includes(service));
-  }
-
-  isIntermediate(){
-    const selected = this.form.get('services')?.value || [];
-    return selected.length > 0 && !this.isAllSelected();
-  }
-
-  toggleSelectAllCheckbox(){
-    if(!this.isAllSelected()){
-      this.form.patchValue({ services: [...this.servicesList]});
-    }else{
-      this.form.patchValue({ services: [] })
     }
   }
 
@@ -306,7 +284,7 @@ createForm(helper: any){
   const formControls = this.form.controls;
   formData.append('fullName', formControls['fullName'].value ?? '');
   formData.append('email', formControls['email'].value ?? '');
-  formData.append('services', JSON.stringify(formControls['services'].value ?? []));
+  formData.append('services', formControls['services'].value ?? '');
   formData.append('organization', formControls['organization'].value ?? '');
   formData.append('languages', JSON.stringify(formControls['languages'].value ?? []));
   formData.append('gender', formControls['gender'].value ?? '');
@@ -343,7 +321,7 @@ createForm(helper: any){
         if (el) el.value = '';
       });
 
-      this.router.navigate(['../']);
+      this.router.navigate(['../'], { state: { showToast: true } });
     },
     error: (err: any) => console.error('Failed to update', err)
   });

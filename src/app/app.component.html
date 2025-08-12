@@ -1,137 +1,214 @@
 <div class="main-container">
 
-  <mat-toolbar>
-    <span>Helpers</span>
-  </mat-toolbar>
+  <div class="sub-container" *ngIf="!isOtherRoute()">
+    <mat-toolbar>
+      <span>Helpers</span>
+    </mat-toolbar>
 
-   <mat-card class="controls-bar" id="1">
-    <div id="2" class="controls-grid" style="display: flex; gap: 8px; align-items: center;">
+    <mat-card class="controls-bar" id="1">
+      <div id="control-grid2" class="controls-grid" style="display: flex; gap: 8px; align-items: center;">
 
-      <mat-form-field id="3" appearance="outline" style="margin: 10px;">
-        <mat-label id="4" >Search</mat-label>
-        <input id="5" matInput placeholder="Name, EmployeeId, Phone" 
-                [(ngModel)]="searchQuery" 
-                (ngModelChange)="fetchBySearch()"
-                (focus) = "searchFocused = true"
-                (blur) = "searchFocused = false">
-      </mat-form-field>
 
-      <div >
-        <p *ngIf="searchFocused">{{helperCount}} of </p>
-        <p >{{totalHelperCount}}</p>
+        <button mat-raised-button [matMenuTriggerFor]="filterMenu" #menuTrigger="matMenuTrigger">
+          <mat-icon>filter_alt</mat-icon>
+        </button>
+
+        <mat-menu #filterMenu [hasBackdrop]="true">
+          <div (click)="$event.stopPropagation()"> 
+
+            <div style="padding: 8px 16px 4px 16px; font-weight: 500;">Filter By</div>
+
+            <button *ngIf="serviceFilter.value?.length" mat-icon-button color="warn" (click)="serviceFilter.setValue([])">Reset</button>
+            <mat-form-field appearance="outline" style="width: 200px; margin: 0 16px 16px 16px;">
+                <mat-label>Services</mat-label>
+                
+                <mat-select [formControl]="serviceFilter" multiple (selectionChange)="filterHelpersByServiceChange($event)">
+                    <mat-select-trigger>
+                        {{serviceFilter.value?.[0] || ''}}
+                        @if ((serviceFilter.value?.length || 0) > 1) {
+                            <span class="example-additional-selection">
+                            (+{{(serviceFilter.value?.length || 0) - 1}})
+                            </span>
+                        }
+                    </mat-select-trigger>
+                    
+                    <mat-checkbox [checked]="areAllServicesSelected()" [indeterminate]="areServicesIndeterminate()" (change)="toggleSelectAllServices($event)">
+                        Select All
+                    </mat-checkbox>
+                    
+                    <mat-option *ngFor="let topping of servicesList" [value]="topping">
+                        {{ topping }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            
+            <mat-form-field appearance="outline" style="width: 200px; margin: 0 16px 16px 16px;">
+              <mat-label>Organizations</mat-label>
+              <mat-select [formControl]="organizationFilter" multiple (selectionChange)="filterHelpersByOrganizationChange($event)">
+          
+                  <mat-select-trigger>
+                      {{organizationFilter.value?.[0] || ''}}
+                      @if ((organizationFilter.value?.length || 0) > 1) {
+                          <span class="example-additional-selection">
+                          (+{{(organizationFilter.value?.length || 0) - 1}})
+                          </span>
+                      }
+                  </mat-select-trigger>
+
+                  <mat-checkbox
+                    [checked]="areAllOrganizationsSelected()"
+                    [indeterminate]="areOrganizationsIndeterminate()"
+                    (change)="toggleSelectAllOrganizations($event)">
+                    Select All
+                  </mat-checkbox>
+
+                <mat-option *ngFor="let organization of organizationsList" [value]="organization">
+                  {{ organization}}
+                </mat-option>
+
+              </mat-select>
+            </mat-form-field>
+
+            <button *ngIf="organizationFilter.value?.length" mat-icon-button color="warn" (click)="organizationFilter.setValue([])">Reset</button>
+            <div>
+              <button mat-stroked-button color="primary" (click)="reserAllFilters()" >reset</button>
+              <button mat-flat-button color="primary" (click)="applyFilter(); menuTrigger.closeMenu()" >Apply</button>
+            </div>
+          </div>
+        </mat-menu>
+
+        <button mat-raised-button [matMenuTriggerFor]="sortMenu">
+          <mat-icon>arrow_upward</mat-icon>
+          <mat-icon>arrow_downward</mat-icon>
+        </button>
+
+        <mat-menu #sortMenu style="width: 200px;">
+
+          <div style="padding: 8px 16px; font-weight: 500;">
+            Sort By
+          </div>
+          <div >
+            <button mat-menu-item (click)="sortHelpers('name')">
+              Sort by Name
+            </button>
+            <button mat-menu-item (click)="sortHelpers('employeeId')">
+              Sort by EmployeeId
+            </button>
+          </div>
+          
+        </mat-menu>
+
+        <mat-form-field id="control-grid3" class="search-input"  appearance="outline">
+          <mat-label id="control-grid4">Search</mat-label>
+          <input id="5" matInput placeholder="Name, EmployeeId, Phone" 
+                  [(ngModel)]="searchQuery" 
+                  (ngModelChange)="fetchBySearch()">
+        </mat-form-field>
+
+        <div >
+          <p *ngIf="showCount">{{helperCount}} of </p>
+          <p >{{totalHelperCount}}</p>
+          <p>helpers</p>
+        </div>
+
+        
+        <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
+          Add Helper
+        </button>
+
+      </div>
+    </mat-card>
+
+    <div *ngIf="!isOtherRoute()" class="home-container">
+      <div class="sidebar">
+        <div *ngFor="let helper of helpers" 
+            class="helper-card"
+            [class.active]="selectedHelper?.employeeId === helper.employeeId"
+            (click)="onClick(helper.employeeId)">
+          <div class="helper-div-1">
+            <img class="helper-pic" *ngIf="helper.photo" [src]="getPhotoUrl(helper.photo)">
+            <div class="helper-pic" *ngIf="!helper.photo">{{ getInitials(helper.fullName) }}</div>
+          </div>
+          <div class="helper-div-2">
+            <div class="helper-name">{{ helper.fullName }}</div>
+            <div class="helper-id">ID: {{ helper.employeeId }}</div>
+          </div>
+        </div>
       </div>
 
-      <button mat-raised-button [matMenuTriggerFor]="sortMenu">
-        Sort By
-      </button>
 
-      <mat-menu #sortMenu="matMenu">
-        <button mat-menu-item (click)="sortHelpers('name')">
-          Sort by Name
-        </button>
-        <button mat-menu-item (click)="sortHelpers('date')">
-          Sort by Date Joined
-        </button>
-      </mat-menu>
+      <div class="content">
+
+        <div class="helper-detail-card" *ngIf="selectedHelper">
+
+          <div class="header">
+
+            <div class="avatar-section">
+              <div class="avatar" *ngIf="!selectedHelper.photo">{{ getInitials(selectedHelper.fullName) }}</div>
+              <img class="avatar-pic" *ngIf="selectedHelper.photo" [src]="getPhotoUrl(selectedHelper.photo)">
+              <div class="name-role">
+                <h2>{{ selectedHelper.fullName }}</h2>
+                <p>{{ selectedHelper.services }}</p>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button (click)="deleteHelper(selectedHelper.employeeId)"><mat-icon>delete</mat-icon></button>
+            </div>
+
+          </div>
 
 
-      <mat-form-field appearance="outline">
-        <mat-label>Filter By</mat-label>
-        <mat-select [(ngModel)]="filterBy">
-          <mat-option value="gender:male">Male</mat-option>
-          <mat-option value="gender:female">Female</mat-option>
-          <mat-option value="service:maid">Maid</mat-option>
-          <mat-option value="service:cook">Cook</mat-option>
-        </mat-select>
-      </mat-form-field> 
+          <div class="detail-section">
+            <h3>EMPLOYEE ID</h3>
+            <div class="detail-grid">
+              <div>Identification Card</div>
+              <div><a 
+                [href]="getFileUrl(selectedHelper.kycDocument)" 
+                target="_blank"
+                style="display: flex; align-items: center; text-decoration: none;"><mat-icon >visibility</mat-icon>View</a></div>
 
-      <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
-        Add Helper
-      </button>
-
-    </div>
-  </mat-card>
-
-  <div *ngIf="!isOtherRoute()" class="home-container">
-    <div class="sidebar">
-      <div *ngFor="let helper of helpers" class="helper-card" (click)="onClick(helper.employeeId)">
-        <div class="helper-div-1">
-          <img class="helper-pic" *ngIf="helper.photo" [src]="getPhotoUrl(helper.photo)">
-          <div class="helper-pic" *ngIf="!helper.photo">{{ getInitials(helper.fullName) }}</div>
-        </div>
-        <div class="helper-div-2">
-          <div class="helper-name">{{ helper.fullName }}</div>
-          <div class="helper-id">ID: {{ helper.employeeId }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="content">
-      <h1>Main Page</h1>
-      <button [routerLink]="['/add-helper']">Click to add helper</button>
-
-      <div class="helper-detail-card" *ngIf="selectedHelper">
-
-        <div class="header">
-
-          <div class="avatar-section">
-            <div class="avatar" *ngIf="!selectedHelper.photo">{{ getInitials(selectedHelper.fullName) }}</div>
-            <img class="avatar-pic" *ngIf="selectedHelper.photo" [src]="getPhotoUrl(selectedHelper.photo)">
-            <div class="name-role">
-              <h2>{{ selectedHelper.fullName }}</h2>
-              <p>{{ selectedHelper.services[0] }}</p>
+              <div>Employee Code</div>
+              <div>{{ selectedHelper.employeeId }}</div>
             </div>
           </div>
 
-          <div class="actions">
-            <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button (click)="deleteHelper(selectedHelper.employeeId)"><mat-icon>delete</mat-icon></button>
+          <div class="detail-section">
+            <h3>PERSONAL DETAILS</h3>
+            <div class="detail-grid">
+              <div>Gender</div><div>{{ selectedHelper.gender }}</div>
+              <div>Language(s)</div><div>{{ selectedHelper.languages.join(', ') }}</div>
+              <div>Mobile No.</div><div>{{ selectedHelper.phonePrefix }} {{ selectedHelper.phoneNumber }}</div>
+              <div>Email ID</div><div>{{ selectedHelper.email || '-' }}</div>
+              <div>KYC Document</div>
+              <div><a 
+                [href]="getFileUrl(selectedHelper.kycDocument)" 
+                target="_blank"
+                style="display: flex; align-items: center; text-decoration: none;"><mat-icon>visibility</mat-icon>View</a></div>
+            </div>
           </div>
 
-        </div>
-
-        <mat-divider></mat-divider>
-
-        <!-- Sections -->
-        <div class="detail-section">
-          <h3>EMPLOYEE ID</h3>
-          <div class="detail-grid">
-            <div>Identification Card</div>
-            <div><a [href]="getFileUrl(selectedHelper.kycDocument)" target="_blank">View</a></div>
-
-            <div>Employee Code</div>
-            <div>{{ selectedHelper.employeeId }}</div>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3>PERSONAL DETAILS</h3>
-          <div class="detail-grid">
-            <div>Gender</div><div>{{ selectedHelper.gender }}</div>
-            <div>Language(s)</div><div>{{ selectedHelper.languages.join(', ') }}</div>
-            <div>Mobile No.</div><div>{{ selectedHelper.phonePrefix }} {{ selectedHelper.phoneNumber }}</div>
-            <div>Email ID</div><div>{{ selectedHelper.email || '-' }}</div>
-            <div>KYC Document</div>
-            <div><a [href]="getFileUrl(selectedHelper.kycDocument)" target="_blank">View</a></div>
+          <div class="detail-section">
+            <h3>SERVICE DETAILS</h3>
+            <div class="detail-grid">
+              <div>Type</div><div>{{ selectedHelper.services }}</div>
+              <div>Organization</div><div>{{ selectedHelper.organization }}</div>
+              <div>Joined On</div><div>{{ formatDate(selectedHelper.joinedDate) }}</div>
+            </div>
           </div>
         </div>
 
-        <div class="detail-section">
-          <h3>SERVICE DETAILS</h3>
-          <div class="detail-grid">
-            <div>Type</div><div>{{ selectedHelper.services[0] }}</div>
-            <div>Organization</div><div>{{ selectedHelper.organization }}</div>
-            <div>Joined On</div><div>{{ formatDate(selectedHelper.createdAt) }}</div>
-          </div>
-        </div>
       </div>
-
     </div>
   </div>
+  
 
   <div *ngIf="isOtherRoute()" class="form-container">
     <button [routerLink]="['../']">Go to Home</button>
+    <router-outlet></router-outlet>
   </div>
 
-  <router-outlet></router-outlet>
+  
 </div>

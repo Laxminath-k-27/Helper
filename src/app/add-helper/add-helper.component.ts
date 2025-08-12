@@ -14,6 +14,12 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { MatDividerModule } from '@angular/material/divider';
+import { AfterViewInit } from '@angular/core';
+import { QRCodeModule } from 'angularx-qrcode';
+import { TickDialogComponent } from '../tick-dialog/tick-dialog.component';
+import { QrDialogComponent } from '../qr-dialog/qr-dialog.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 @Component({
@@ -32,7 +38,12 @@ import { Router } from '@angular/router';
     MatCheckboxModule,
     MatRadioModule,
     MatDialogModule,
-    HttpClientModule
+    HttpClientModule,
+    MatDividerModule,
+    QRCodeModule,
+    TickDialogComponent,
+    QrDialogComponent,
+    MatSnackBarModule
   ],
 
   
@@ -59,60 +70,63 @@ export class AddHelperComponent {
   @ViewChild('kycDialog') kycDialogTemplate!: any;
 
   selectedKycFile: File | null = null;
-  kycFile: File | null = null;
   kycDialogRef: any;
 
   selectedOtherFile: File | null = null;
-  otherFile: File | null = null;
   otherDialogRef: any;
+
+  isDragOver: boolean = false;
+  isOtherDragOver: boolean = false;
 
   constructor(private _formBuilder: FormBuilder, 
               private dialog: MatDialog,
               private http: HttpClient,
-              private router: Router) {}
+              private router: Router,
+              private snackBar: MatSnackBar) {}
+
+  ngOnInit(): void {
+
+    this.firstFormGroup.get('vehicleType')?.valueChanges.subscribe((value) => {
+      const vehicleNumberControl = this.firstFormGroup.get('vehicleNumber');
+
+      if (value === 'none') {
+        vehicleNumberControl?.clearValidators();
+        vehicleNumberControl?.setValue('');
+      } else {
+        vehicleNumberControl?.setValidators([Validators.required]);
+      }
+
+      vehicleNumberControl?.updateValueAndValidity();
+    });
+
+  }
 
   firstFormGroup = this._formBuilder.group({
     fullName: ['', Validators.required],
     email: ['', Validators.email],
-    services: [[] as string[], Validators.required],
+    services: ['', Validators.required],
     organization: ['', Validators.required],
     languages: [[] as string[], Validators.required],
     gender: ['', Validators.required],
     phonePrefix: ['+91', Validators.required],
-    phoneNumber: ['', [Validators.required]],
+    phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
     vehicleType: ['none'],
     vehicleNumber: [''],
     photo: [null as File | null],
-    kycDocument: [null as File | null],
-    kycDocType: ['', Validators.required]
+    kycDocument: [null as File | null, Validators.required],
+    kycDocType: ['', {
+    validators: [Validators.required],
+    updateOn: 'blur'
+  }]
   });
 
   secondFormGroup = this._formBuilder.group({
     otherDocument: [null as File | null],
-    otherDocType: ['']
+    otherDocType: ['', {
+    validators: [Validators.required],
+    updateOn: 'blur'
+  }]
   });
-
-  isAllSelected(): boolean {
-    const selected = this.firstFormGroup.get('services')?.value || [];
-    return this.servicesList.every(service => selected.includes(service));
-  }
-
-  isIndeterminate(): boolean {
-    const selected = this.firstFormGroup.get('services')?.value || [];
-    return selected.length > 0 && !this.isAllSelected();
-  }
-
-  toggleSelectAllCheckbox(event: any): void {
-    if (event.checked) {
-      this.firstFormGroup.patchValue({ services: [...this.servicesList] });
-    } else {
-      this.firstFormGroup.patchValue({ services: [] });
-    }
-  }
-
-  onSelectionChange(event: MatSelectChange) {
-    this.firstFormGroup.patchValue({ services: event.value });
-  }
 
   areAllLanguagesSelected(): boolean {
     const selected = this.firstFormGroup.get('languages')?.value || [];
@@ -162,7 +176,7 @@ export class AddHelperComponent {
 
   openKycUploadModal(templateRef: any){
     this.kycDialogRef = this.dialog.open(templateRef, {
-      width: '400px',
+      width: '600px',
       disableClose: true
     });
   }
@@ -175,16 +189,50 @@ export class AddHelperComponent {
     }
   }
 
+  
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver = false;
+
+    if (event.dataTransfer?.files.length) {
+      const file = event.dataTransfer.files[0];
+      if (file.type === "application/pdf") {
+        this.selectedKycFile = file;
+        this.firstFormGroup.patchValue({ kycDocument: file });
+        this.firstFormGroup.get("kycDocument")?.markAsDirty();
+      } else {
+        this.showErrorToast("Only PDF files are allowed.");
+      }
+    }
+  }
+
+  showErrorToast(message: string) {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      verticalPosition: 'bottom',
+      horizontalPosition: 'right'
+    });
+  }
+
   saveKycFile(){
     if (this.firstFormGroup.get('kycDocType')?.value && this.selectedKycFile) {
-      this.kycFile = this.selectedKycFile;
       this.kycDialogRef.close();
     }
   }
 
   cancelKycFile(): void {
     this.selectedKycFile = null;
-    this.kycFile = null;
     this.firstFormGroup.patchValue({
       kycDocument: null,
       kycDocType: ''
@@ -192,15 +240,78 @@ export class AddHelperComponent {
     this.kycDialogRef.close();
   }
 
+  deleteKycFile() {
+    this.selectedKycFile = null;
+    this.firstFormGroup.patchValue({ kycDocument: null });
+
+    const kycInput = document.getElementById('kycInput') as HTMLInputElement;
+    if (kycInput) {
+      kycInput.value = '';
+    }
+  }
+
+  isKycInvalid(): boolean {
+    const kycDocTypeInvalid =
+      this.firstFormGroup.get('kycDocType')?.invalid &&
+      this.firstFormGroup.get('kycDocType')?.touched;
+
+    const kycDocumentInvalid =
+      this.firstFormGroup.get('kycDocument')?.invalid &&
+      this.firstFormGroup.get('kycDocument')?.touched;
+
+    return !!kycDocTypeInvalid || !!kycDocumentInvalid;
+  } 
+
   get kycDocumentControl(): FormControl {
     return this.firstFormGroup.get('kycDocument') as FormControl;
   }
 
   openOtherUploadModal(templateRef: any): void {
+    const control = this.secondFormGroup.get('otherDocument');
+
+    control?.markAsPristine();
+    control?.markAsUntouched();
+
     this.otherDialogRef = this.dialog.open(templateRef, {
       width: '600px',
       disableClose: true
     });
+  }
+
+  onOtherDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isOtherDragOver = true;
+  }
+
+  onOtherDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isOtherDragOver = false;
+  }
+
+  onOtherDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isOtherDragOver = false;
+
+    if (event.dataTransfer?.files.length) {
+      const file = event.dataTransfer.files[0];
+      if (file.type === "application/pdf") {
+        this.selectedOtherFile = file;
+        this.secondFormGroup.patchValue({ otherDocument: file });
+        this.secondFormGroup.get("otherDocument")?.markAsDirty();
+      } else {
+        this.showErrorToast("Only PDF files are allowed.");
+      }
+    }
+  }
+
+  deleteOtherFile() {
+    this.selectedOtherFile = null;
+    this.secondFormGroup.patchValue({ otherDocument: null });
+
+    const otherInput = document.getElementById('otherInput') as HTMLInputElement;
+    if (otherInput) {
+      otherInput.value = '';
+    }
   }
 
   onOtherFileSelected(event: Event): void {
@@ -213,7 +324,7 @@ export class AddHelperComponent {
 
   saveOtherFile(): void {
     if (this.secondFormGroup.get('otherDocType')?.value && this.selectedOtherFile) {
-      this.otherFile = this.selectedOtherFile;
+      // this.otherFile = this.selectedOtherFile;
       this.otherDialogRef.close();
     }
   }
@@ -244,7 +355,7 @@ submitForm(): void {
   const firstControls = this.firstFormGroup.controls;
   formData.append('fullName', firstControls['fullName'].value ?? '');
   formData.append('email', firstControls['email'].value ?? '');
-  formData.append('services', JSON.stringify(firstControls['services'].value ?? []));
+  formData.append('services', firstControls['services'].value ?? '');
   formData.append('organization', firstControls['organization'].value ?? '');
   formData.append('languages', JSON.stringify(firstControls['languages'].value ?? []));
   formData.append('gender', firstControls['gender'].value ?? '');
@@ -266,7 +377,7 @@ submitForm(): void {
   const otherFile = secondControls['otherDocument'].value;
   if (otherFile) formData.append('otherDocument', otherFile);
 
-  this.http.post('http://localhost:3000/api/helpers', formData).subscribe({
+  this.http.post<{ message: string; employeeId: string }>('http://localhost:3000/api/helpers', formData).subscribe({
     next: (res) => {
 
       console.log('Saved!', res);
@@ -275,7 +386,6 @@ submitForm(): void {
       this.secondFormGroup.reset();
 
       this.selectedKycFile = null;
-      this.kycFile = null;
       this.photoUrl = null;
 
       const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
@@ -286,11 +396,63 @@ submitForm(): void {
       
       this.stepper.reset();
 
+      const tickDialogRef = this.dialog.open(TickDialogComponent, {
+        width: '300px',
+        disableClose: true
+      });
+
+      setTimeout(() => {
+        tickDialogRef.close();
+
+        this.dialog.open(QrDialogComponent, {
+          width: '350px',
+          data: { employeeId: res.employeeId }
+        });
+      }, 1500);
+
       this.router.navigate(['../']);
     },
     error: (err) => console.error('Failed to save', err)
   });
 }
+
+  getFileUrl(file: string | File | null | undefined): string {
+    if (!file) return '';
+    if (typeof file === 'string') {
+      return file;
+    }
+    if (file instanceof File) {
+      return URL.createObjectURL(file);
+    }
+    return '';
+  }
+
+
+  getPhotoUrl(photo: string | File | null | undefined): string {
+    if (!photo) return '';
+    if (typeof photo === 'string') {
+      return 'http://localhost:3000/' + photo;
+    }
+    if (photo instanceof File) {
+      return URL.createObjectURL(photo);
+    }
+    return '';
+  }
+
+  getInitials(name: string): string {
+    const parts = this.firstFormGroup.get("fullName")?.value?.split(' ') || [];
+    return parts.map(p => p[0]).join('').toUpperCase();
+  }
+
+  goToNextStep(stepper: MatStepper) {
+
+    this.firstFormGroup.markAllAsTouched();
+
+    if (this.firstFormGroup.valid) {
+      stepper.next();
+    }
+  }
+
 
   logging() {
     console.log(this.firstFormGroup.value, this.secondFormGroup.value);

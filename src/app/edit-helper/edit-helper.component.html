@@ -27,24 +27,12 @@
                 </div>
 
 
-                
-
                 <mat-form-field appearance="outline">
                     <mat-label>Type of Service</mat-label>
-                    <mat-select formControlName="services" multiple (selectionChange)="onSelectionChange($event)">
-                    
-                        <mat-checkbox
-                            class="mat-option-pseudo-checkbox"
-                            [checked]="isAllSelected()"
-                            [indeterminate]="isIntermediate()"
-                            (change)="toggleSelectAllCheckbox()">
-                            Select All
-                        </mat-checkbox>
-
+                    <mat-select formControlName="services">
                         <mat-option *ngFor="let service of servicesList" [value]="service">
                         {{ service }}
                         </mat-option>
-
                     </mat-select>
                 </mat-form-field>
 
@@ -140,16 +128,6 @@
                     </mat-select>
                 </mat-form-field>
 
-                <!-- @if (form.get('vehicleType')?.value !== 'none') {
-                    <mat-form-field appearance="outline" style="width: 100%;">
-                        <mat-label>Vehicle Number</mat-label>
-                        <input matInput formControlName="vehicleNumber" placeholder="Enter vehicle number" required="">
-
-                        @if (form.get('vehicleNumber')?.invalid && (form.get('vehicleNumber')?.touched || form.get('vehicleNumber')?.dirty)) {
-                        <mat-error>Vehicle number is required</mat-error>
-                        }
-                    </mat-form-field>
-                } -->
 
                 <mat-form-field
                     appearance="outline"
@@ -173,7 +151,7 @@
                         <div style="font-size: 12px; color: gray;">Upload KYC</div>
                     </ng-container>
                     <ng-template #showDoc>
-                        <mat-icon>Doc</mat-icon>
+                        <mat-icon>picture_as_pdf</mat-icon>
                         <div style="font-size: 12px;">{{ kycFile?.name }}</div>
                         <div style="font-size: 10px; color: gray;" *ngIf="kycFile">
                         {{ (kycFile.size / 1024) | number:'1.2-2' }} KB
@@ -200,6 +178,7 @@
                     <input type="file" id="kycInput" accept="application/pdf" (change)="onKycFileSelected($event)" />
 
                     <div *ngIf="kycFile" style="font-size: 13px;">
+                        <mat-icon>picture_as_pdf</mat-icon>
                         {{ kycFile.name }} 
                         ({{ (kycFile.size / 1024).toFixed(2) }} KB)
                     </div>
@@ -238,7 +217,7 @@
                     <div style="font-size: 12px; color: gray;">Upload Other File</div>
                 </ng-container>
                 <ng-template #showDocOther>
-                    <mat-icon>Doc</mat-icon>
+                    <mat-icon>picture_as_pdf</mat-icon>
                     <div style="font-size: 12px;">{{ otherFile?.name }}</div>
                     <div style="font-size: 10px; color: gray;" *ngIf="otherFile">
                     {{ (otherFile.size / 1024) | number:'1.2-2' }} KB

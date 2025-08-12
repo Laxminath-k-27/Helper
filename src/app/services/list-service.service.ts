@@ -24,6 +24,17 @@ export class ListServiceService {
     return this.http.get<any>(`${this.apiUrl}/search/${encodeURIComponent(searchString)}`);
   }
 
+  getHelpersByFilter(services: string[], organizations: string[]): Observable<any[]> {
+    
+    const params = {
+      services: services.join(',') || '',
+      organizations: organizations.join(',') || ''
+    };
+    
+    console.log(`${this.apiUrl}/filter`, { params });
+    return this.http.get<any[]>(`${this.apiUrl}/filter/helpers`, { params });
+  }
+
   deleteHelper(employeeId: string): Observable<any>{
     return this.http.delete<any>(`${this.apiUrl}/${employeeId}`);
   }
