@@ -1,149 +1,13 @@
-// .main-container {
-//     display: flex;
-//     flex-direction: column;
-//     height: 100vh;
-// }
-
-// .home-container {
-//     display: flex;
-//     flex: 1;
-// }
-
-// .sidebar {
-//     width: 250px;
-//     background-color: #f3f3f3;
-//     padding: 16px;
-//     border-right: 1px solid #ccc;
-//     overflow-y: auto;
-// }
-
-// .helper-card {
-//     background-color: white;
-//     border: 1px solid #ddd;
-//     border-radius: 8px;
-//     padding: 12px;
-//     margin-bottom: 12px;
-//     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//     display: flex;
-// }
-
-// .helper-name {
-//     font-weight: 600;
-//     margin: 7px;
-// }
-
-// .helper-id {
-//     font-size: 0.9em;
-//     color: #666;
-//     margin: 3px;
-// }
-
-// .helper-div-1, .helper-div-2{
-//     margin: 10pt;
-// }
-
-// .helper-pic {
-//     background: #e2e8f0;
-//     color: #1a202c;
-//     font-weight: bold;
-//     font-size: 18px;
-//     width: 48px;
-//     height: 48px;
-//     border-radius: 50%;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-// }
-
-// .content {
-//     flex: 1;
-//     padding: 24px;
-// }
-
-// .form-container {
-//     padding: 24px;
-// }
-
-// .helper-detail-card {
-//     background: #fff;
-//     padding: 24px;
-//     border-radius: 20px;
-//     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-//     margin: 30px;
-//     font-family: "Inter", sans-serif;
-// }
-
-// .header {
-//     display: flex;
-//     justify-content: space-between;
-//     align-items: center;
-//     margin: 10pt;
-// }
-
-// .avatar-section {
-//     display: flex;
-//     align-items: center;
-//     gap: 12px;
-// }
-
-// .avatar {
-//     background: #e2e8f0;
-//     color: #1a202c;
-//     width: 48px;
-//     height: 48px;
-//     font-weight: bold;
-//     font-size: 18px;
-//     border-radius: 50%;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-// }
-
-// .avatar-pic {
-//     width: 48px;
-//     height: 48px;
-//     border-radius: 50%;
-// }
-
-// .name-role h2 {
-//     margin: 0;
-//     font-size: 20px;
-// }
-
-// .name-role p {
-//     margin: 0;
-//     color: #666;
-//     font-size: 14px;
-// }
-
-// .detail-section {
-//     margin-top: 24px; 
-// }
-
-// .detail-section h3 {
-//     margin-bottom: 12px;
-//     font-size: 16px;
-//     color: #4a5568;
-// }
-
-// .detail-grid {
-//     display: grid;
-//     grid-template-columns: 180px 1fr;
-//     row-gap: 12px;
-//     column-gap: 24px;
-//     font-size: 15px;
-// }
-
-// Main container styles
 .main-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 97vh;
     background-color: #f8fafc;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    border: 5px solid #e5e7eb;
+    overflow-y: auto;
 }
 
-// Toolbar styles
 mat-toolbar {
     background-color: #ffffff !important;
     color: #1f2937 !important;
@@ -157,47 +21,40 @@ mat-toolbar {
     }
 }
 
-// Controls bar styles
+.add-helper-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .controls-bar {
-    background: #ffffff !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
+    background: #ffffff;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
     border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 80px;
     
     .controls-grid {
         padding: 8px;
-        
-        // Override inline styles for the controls-grid div
-        
+        display: flex;
+        gap: 8px; 
+        align-items: center;
+
         &#control-grid2 {
             display: flex !important;
-            gap: 8px !important;
+            gap: 13px !important;
             align-items: center !important;
         }
         
-        // Search field styling
         mat-form-field {
             flex: 1;
             min-width: 280px;
-            
-            // Override inline margin for search field
-            &#control-grid3 {
-                margin: 10px;
-            }
-            
-            .mat-mdc-form-field-subscript-wrapper {
-                display: none;
-            }
-            
-            .mat-mdc-text-field-wrapper {
-                background-color: #f9fafb;
-                border-radius: 8px;
-            }
         }
         
-        // Count display
         div {
             display: flex;
             align-items: center;
@@ -216,7 +73,6 @@ mat-toolbar {
             }
         }
         
-        // Button styling
         button {
             border-radius: 8px !important;
             font-weight: 500 !important;
@@ -245,15 +101,56 @@ mat-toolbar {
     }
 }
 
-.search-input {
-    width: 100px !important;
+.control-grid3 {
+    padding: 0;
+    max-height: 20px;
 }
 
-// Home container layout
+.mat-mdc-form-field-subscript-wrapper{
+    display: none !important;
+    height: 0px !important;
+}
+
+.search-input {
+    max-width: 100px;
+}
+
+.search-div:hover {
+    background-color: white !important;
+}
+
+.search-div:focus-within {
+    background-color: white !important;
+}
+
+.search-div.mat-raised-button.mat-button-base {
+  background-color: white !important;
+}
+
+.search-div.mat-raised-button.mat-button-base:hover {
+  background-color: white !important;
+  box-shadow: none !important; // optional: remove shadow change on hover
+}
+
+.search-div .mat-ripple-element {
+  display: none !important; // removes click ripple
+}
+
 .home-container {
     display: flex;
     flex: 1;
     gap: 0;
+    height: 80vh;
+    background: white;
+}
+
+.input-no-hover {
+    outline: none !important;
+}
+
+.input-no-hover:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 
@@ -285,11 +182,9 @@ mat-toolbar {
     }
 }
 
-// Helper card in sidebar
 .helper-card {
     background-color: #ffffff;
     border: 1px solid white;
-    // border-radius: 8px;
     padding: 16px;
     box-shadow: none;
     display: flex;
@@ -305,7 +200,7 @@ mat-toolbar {
     
     &:active {
         background-color: #f1f5f9;
-        background-color: var(--primary-color-light); // e.g., a light blue
+        background-color: var(--primary-color-light);
         border-color: var(--primary-color);
     }
 }
@@ -348,11 +243,10 @@ mat-toolbar {
     font-weight: 400;
 }
 
-// Content area styles
 .content {
     flex: 1;
     margin: 20px 0 0 0;
-    background-color: #f8fafc;
+    background-color: white;
     overflow-y: auto;
     height: 93%;
     
@@ -380,6 +274,7 @@ mat-toolbar {
 .form-container {
     padding: 24px;
     background-color: #f8fafc;
+    height: 100vh;
     
     button {
         background-color: #6b7280 !important;
@@ -390,15 +285,14 @@ mat-toolbar {
     }
 }
 
-// Helper detail card styles
 .helper-detail-card {
-    background: #ffffff;
+    background: white;
     padding: 32px;
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    // margin: 24px 0 0 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     border: 1px solid #f1f5f9;
+    height: 100%;
 }
 
 .header {
@@ -481,7 +375,6 @@ mat-toolbar {
     }
 }
 
-// Detail sections
 .detail-section {
     margin-top: 32px;
     
@@ -552,7 +445,6 @@ mat-toolbar {
     }
 }
 
-// Menu styling improvements
 mat-menu {
     .mat-mdc-menu-panel {
         border-radius: 12px !important;
@@ -560,12 +452,12 @@ mat-menu {
         border: 1px solid #e5e7eb !important;
         
         .mat-mdc-menu-content {
-            padding: 8px !important;
+            // padding: 8px !important;
         }
         
         .mat-mdc-menu-item {
             border-radius: 8px !important;
-            margin: 2px 0 !important;
+            // margin: 2px 0 !important;
             font-size: 14px !important;
             
             &:hover {
@@ -574,7 +466,6 @@ mat-menu {
         }
     }
     
-    // Override inline styles for sort menu
     &#sortMenu {
         width: 200px !important;
         
@@ -584,22 +475,19 @@ mat-menu {
         }
     }
     
-    // Filter menu specific styling
     &#filterMenu {
         .mat-mdc-menu-panel {
             min-width: 280px !important;
         }
         
-        // Filter menu content styling
         > div {
             > div:first-child {
                 padding: 8px 16px 4px 16px !important;
                 font-weight: 500 !important;
             }
             
-            // Form fields inside filter menu
             mat-form-field {
-                width: 200px !important;
+                width: 200px;
                 margin: 0 16px 16px 16px !important;
                 
                 .mat-mdc-text-field-wrapper {
@@ -607,7 +495,6 @@ mat-menu {
                 }
             }
             
-            // Button container at bottom of filter menu
             div:last-child {
                 display: flex;
                 gap: 8px;
@@ -625,7 +512,6 @@ mat-menu {
     }
 }
 
-// Form field improvements
 mat-form-field {
     .mat-mdc-form-field-outline {
         color: #d1d5db !important;
@@ -644,19 +530,13 @@ mat-form-field {
     }
 }
 
-// Additional utility classes to handle inline styles
 .example-additional-selection {
     font-size: 12px;
     color: #6b7280;
     margin-left: 4px;
 }
 
-// Override any remaining inline styles
-[style] {
-    // This ensures our CSS takes precedence over inline styles where needed
-}
 
-// Specific overrides for elements with inline styles
 mat-form-field[style*="width: 200px"] {
     width: 200px !important;
 }
@@ -714,8 +594,8 @@ div[style*="padding: 8px 16px 4px 16px; font-weight: 500;"] {
     }
     
     .controls-grid {
-        flex-wrap: wrap !important;
-        gap: 12px !important;
+        // flex-wrap: wrap !important;
+        // gap: 12px !important;
         
         mat-form-field {
             min-width: 100% !important;

@@ -1,9 +1,16 @@
-<div style="padding: 24px; text-align: center;">
-    <mat-icon color="warn">warning</mat-icon>
-    <h2>{{ data.message }}</h2>
-    <h4>You can't undo this action</h4>
-    <div style="margin-top: 24px;">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="warn" (click)="onDelete()" style="background-color: red;"><mat-icon color="warn" style="background-color: white;">delete</mat-icon>Delete</button>
+<div class="main-div">
+    <div class="content-div">
+        <mat-icon color="warn" >warning</mat-icon>
+        <h2>{{ data.message }}</h2>
+        <h4>You can't undo this action</h4>
+        <mat-divider></mat-divider>
+    </div>
+    
+    <div class="button-group">
+        <button mat-button class="cancel-btn" (click)="onCancel()">Cancel</button>
+        <button mat-raised-button class="delete-btn" color="warn" (click)="onDelete()" style="background-color: red;">
+            <mat-icon color="warn" style="background-color: red; color: white;">delete</mat-icon>
+            Delete
+        </button>
     </div>
 </div>

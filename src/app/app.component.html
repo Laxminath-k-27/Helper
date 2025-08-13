@@ -8,7 +8,7 @@
     
 
     <mat-card class="controls-bar" id="1">
-      <div id="control-grid2" class="controls-grid" style="display: flex; gap: 8px; align-items: center;">
+      <div id="control-grid2" class="controls-grid">
 
 
         <button mat-raised-button [matMenuTriggerFor]="filterMenu" #menuTrigger="matMenuTrigger">
@@ -101,27 +101,37 @@
           
         </mat-menu>
 
-        <mat-form-field id="control-grid3" class="search-input"  appearance="outline">
-          <mat-label id="control-grid4">Search</mat-label>
-          <input id="5" matInput placeholder="Name, EmployeeId, Phone" 
+        <!-- <mat-form-field  class="search-input"  appearance="outline">
+          <mat-label>Search</mat-label>
+          <input i matInput placeholder="Name, EmployeeId, Phone" 
                   [(ngModel)]="searchQuery" 
                   (ngModelChange)="fetchBySearch()">
-        </mat-form-field>
+        </mat-form-field> -->
+
+        <button mat-raised-button class="search-div" style="background-color: white !important; border: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; height: 33px;">
+          <mat-icon>search</mat-icon>
+          <input class="input-no-hover" placeholder="Name, EmployeeId, Phone" 
+                  [(ngModel)]="searchQuery" 
+                  (ngModelChange)="fetchBySearch()"
+                  style="border: none; width: 200px;">
+        </button>
 
         <div >
           <p *ngIf="showCount">{{helperCount}} of </p>
           <p >{{totalHelperCount}}</p>
           <p>helpers</p>
         </div>
-
-        <button mat-raised-button color="primary" [routerLink]="['/add-edit-helper']" [queryParams]="{ mode: 'add' }">
-          Add Helper
-        </button>
         
         <!-- <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
           Add Helper original
         </button> -->
 
+      </div>
+
+      <div class="add-helper-div">
+        <button mat-raised-button color="primary" [routerLink]="['/add-edit-helper']" [queryParams]="{ mode: 'add' }">
+          Add Helper
+        </button>
       </div>
     </mat-card>
 
@@ -211,7 +221,7 @@
   </div>
   
 
-  <div *ngIf="isOtherRoute()" class="form-container">
+  <div *ngIf="isOtherRoute()" class="form-container" >
     <button [routerLink]="['../']">Go to Home</button>
     <router-outlet></router-outlet>
   </div>

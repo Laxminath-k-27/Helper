@@ -3,11 +3,12 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDivider } from '@angular/material/divider';
 
 @Component({
   selector: 'app-delete-success-dialog',
   standalone: true,
-  imports: [ MatIcon ],
+  imports: [ MatIcon, MatDivider ],
   templateUrl: './delete-success-dialog.component.html',
   styleUrl: './delete-success-dialog.component.scss'
 })

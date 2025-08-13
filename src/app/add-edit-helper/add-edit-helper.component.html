@@ -8,16 +8,16 @@
     <mat-step label="Review">Check the information and Confirm</mat-step>
   </mat-stepper>
 
-  <div *ngIf="mode === 'edit' ">
-    <button (click)="details()">form1</button>
-    <button (click)="otherDetails()">form2</button>
+  <div *ngIf="mode === 'edit' " class="sidebar-buttons">
+    <button [class.active]="selectedIndex === 0" (click)="details()"><mat-icon></mat-icon>Helper Details</button>
+    <button [class.active]="selectedIndex === 1" (click)="otherDetails()"><mat-icon></mat-icon>Documents</button>
   </div>
 
   <div class="stepper-content" >
     <div [ngSwitch]="selectedIndex" >
 
-      <div *ngSwitchCase="0" ><mat-icon></mat-icon>
-        <form [formGroup]="firstFormGroup" style="display: flex; flex-direction: column; gap: 16px;">
+      <div *ngSwitchCase="0" style="height: 100%;"><mat-icon></mat-icon>
+        <form [formGroup]="firstFormGroup" style="">
 
             <div class="file-upload-div">
 
@@ -401,8 +401,8 @@
             </ng-template>
 
             <div class="step-2-buttons">
-                <button *ngIf="mode === 'add'" mat-button color="primary" (click)="selectedIndex = 0">Previous</button>
-                <button *ngIf="mode === 'add'" mat-raised-button color="primary" (click)="selectedIndex = 2">Next</button>
+                <button *ngIf="mode === 'add'" mat-button color="primary" (click)="selectedIndex = 0; stepper.selectedIndex=0">Previous</button>
+                <button *ngIf="mode === 'add'" mat-raised-button color="primary" (click)="selectedIndex = 2; stepper.selectedIndex=2">Next</button>
                 <button *ngIf="mode === 'edit'" mat-button color="primary" (click)="logging()">submit</button>
             </div>
           </div>
@@ -455,7 +455,7 @@
         </div>
 
         <div style="margin-top: 16px;">
-          <button mat-button (click)="selectedIndex = 1">Back</button>
+          <button mat-button (click)="selectedIndex = 1; stepper.selectedIndex = 1">Back</button>
            <button type="button" (click)="logging()">Submit</button>
         </div>
 

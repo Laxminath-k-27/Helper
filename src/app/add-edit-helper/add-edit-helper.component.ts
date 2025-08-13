@@ -434,6 +434,7 @@ export class AddEditHelperComponent implements OnInit{
 
     if (this.firstFormGroup.valid) {
       this.selectedIndex = 1
+      stepper.selectedIndex = 1;
     }
   }
 

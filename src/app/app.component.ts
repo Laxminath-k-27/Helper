@@ -288,7 +288,8 @@ export class AppComponent implements OnInit{
 
     deleteHelper(employedId: string) {
       const confirmDialogRef = this.dialog.open(DeleteSuccessDialogComponent, {
-        width: '700px',
+        width: '650px',
+        height: '200px',
         disableClose: true,
         data: { message: `Delete ${this.selectedHelper.fullName}?` }
       });
