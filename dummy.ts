@@ -69,7 +69,9 @@ export class EditHelperComponent implements OnInit{
               private dialog: MatDialog,
               private router: Router,
               private http: HttpClient,
-              private fileutils: FileUtilsService){}
+              private fileutils: FileUtilsService){
+                
+  }
 
   ngOnInit(): void {
       this.id = this.route.snapshot.paramMap.get('id') || '';

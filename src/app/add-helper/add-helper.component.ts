@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, Validators, FormBuilder, FormGroup, FormControl} from '@angular/forms';
 import { STEPPER_GLOBAL_OPTIONS, StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
@@ -57,7 +57,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   styleUrls: ['./add-helper.component.scss']
 })
 
-export class AddHelperComponent {
+export class AddHelperComponent implements OnInit{
   servicesList: string[] = ['Maid','Cook','Driver','Electrician','Plumber','Gardener','Painter','Carpenter','Mechanic'];
   languagesList: string[] = ['Hindi', 'English', 'Telugu', 'Tamil', 'Marathi'];
   phonePrefixes: string[] = ['+91', '+1', '+44', '+61', '+81'];

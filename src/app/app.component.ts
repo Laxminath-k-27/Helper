@@ -86,7 +86,8 @@ export class AppComponent implements OnInit{
         filter(event => event instanceof NavigationEnd)   // normal filter for checking whether event is the NavigationEnd instance
       ).subscribe(() => {
         if (!this.isOtherRoute()) {
-          // this.selectedHelper = null;
+          this.reserAllFilters();
+
           this.fetchHelpers();
           // this.onClick(this.helpers[0].employedId)
         }
@@ -96,6 +97,14 @@ export class AppComponent implements OnInit{
 
     }
 
+    reserAllFilters() {
+      this.searchQuery = '';
+      this.gotTotalHelpers = false;
+      this.showCount = false;
+      this.helperCount = 0;
+      this.serviceFilter.setValue([]);
+      this.organizationFilter.setValue([]);
+    }
 
     checkToast(state: any) {
       if (state.showToast) {
@@ -144,6 +153,7 @@ export class AppComponent implements OnInit{
         })
         this.showCount = true;
       }else{
+        this.reserAllFilters();
         this.fetchHelpers()
         this.showCount = false;
       }
@@ -186,7 +196,6 @@ export class AppComponent implements OnInit{
         console.log(this.helpers)
         console.log(this.helpers[0].employeeId)
         this.onClick(this.helpers[0].employeeId);
-
       }
     }
 
@@ -236,13 +245,6 @@ export class AppComponent implements OnInit{
       }
     }
 
-    reserAllFilters() {
-      this.serviceFilter.setValue([]);
-      this.organizationFilter.setValue([]);
-      // this.showCount = false;
-      // this.searchQuery = '';
-      // this.fetchHelpers();
-    }
 
     applyFilter() {
       const ser = this.serviceFilter.value || [];

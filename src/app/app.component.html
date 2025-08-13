@@ -5,6 +5,8 @@
       <span>Helpers</span>
     </mat-toolbar>
 
+    
+
     <mat-card class="controls-bar" id="1">
       <div id="control-grid2" class="controls-grid" style="display: flex; gap: 8px; align-items: center;">
 
@@ -112,10 +114,13 @@
           <p>helpers</p>
         </div>
 
-        
-        <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
+        <button mat-raised-button color="primary" [routerLink]="['/add-edit-helper']" [queryParams]="{ mode: 'add' }">
           Add Helper
         </button>
+        
+        <!-- <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
+          Add Helper original
+        </button> -->
 
       </div>
     </mat-card>
@@ -154,7 +159,8 @@
             </div>
 
             <div class="actions">
-              <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button [routerLink]="['/add-edit-helper',selectedHelper.employeeId]" [queryParams]="{ mode: 'edit' }" (click)="clicked()"><mat-icon>edit</mat-icon></button>
+              <!-- <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button> -->
               <button mat-icon-button (click)="deleteHelper(selectedHelper.employeeId)"><mat-icon>delete</mat-icon></button>
             </div>
 
