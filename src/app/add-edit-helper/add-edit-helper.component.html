@@ -1,4 +1,16 @@
-<p>hola</p>
+<nav class="back-nav">
+  
+  <button  [routerLink]="['../']" *ngIf="mode === 'add'">
+    <mat-icon>arrow_back</mat-icon>
+    Add Helper
+  </button>
+  <button  [routerLink]="['../../']" *ngIf="mode === 'edit'">
+    <mat-icon>arrow_back</mat-icon>
+    Edit Helper
+  </button>
+
+</nav>
+
 
 <div class="custom-stepper-container" >
 
@@ -16,13 +28,20 @@
   <div class="stepper-content" >
     <div [ngSwitch]="selectedIndex" >
 
-      <div *ngSwitchCase="0" style="height: 100%;"><mat-icon></mat-icon>
-        <form [formGroup]="firstFormGroup" style="">
+      <div *ngSwitchCase="0" style="overflow-y: hidden;">
+        <form [formGroup]="firstFormGroup">
+          <div>
+            <div *ngIf="mode === 'add'" style="margin: 0 0; font-size: 20px;">Helper Details</div>
+            <p *ngIf="mode === 'add'" style="margin: 4px 0; font-size: 12px; color: gray;">
+              Track, Add & Manage all your helpers at one place
+            </p>
+          </div>
+          
 
             <div class="file-upload-div">
 
               <button mat-fab type="button" color="warm" (click)="triggerFileInput(fileInput)"
-                [style.width.px]="120" [style.height.px]="120" [style.borderRadius.%]="50" style="overflow: hidden;">
+                class="big-fab">
 
                 <ng-container *ngIf="photoUrl; else iconOnly">
                   <img [src]="photoUrl"  width="120" height="120" style="object-fit: cover;" />
@@ -36,6 +55,13 @@
 
               <input #fileInput id="photoInput" type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
               <p>Upload photo (.png, .jpeg) max size 5 MB</p>
+              
+              <mat-error *ngIf="photoSizeError">
+                File is too large. Max 5 MB.
+              </mat-error>
+              <mat-error *ngIf="photoTypeError">
+                Invalid type. Allowed: JPG or PNG.
+              </mat-error>
 
             </div>
 
@@ -99,13 +125,19 @@
                     }
                 </mat-select-trigger>
                 
-                
-                <mat-checkbox
+                <div class="lang-checkbox">
+                  <mat-checkbox
+                    style="margin: 0 6px; width: 150px;"
                     [checked]="areAllLanguagesSelected()"
                     [indeterminate]="areLanguagesIndeterminate()"
                     (change)="toggleSelectAllLanguages($event)">
                     Select All
-                </mat-checkbox>
+                  </mat-checkbox>
+                  <mat-divider horizontal></mat-divider>
+                  <span style="margin: 0 15px;">{{firstFormGroup.get('languages')?.value?.length || 0}}/{{languagesList.length}}</span>
+                </div>
+
+                
 
                 <mat-option *ngFor="let lang of languagesList" [value]="lang">
                   {{ lang }}
@@ -119,18 +151,17 @@
 
             </mat-form-field>
 
-            
-            <label class="gender-label">Gender*</label>
-            <mat-radio-group formControlName="gender">
-              <mat-radio-button value="Male">Male</mat-radio-button>
-              <mat-radio-button value="Female">Female</mat-radio-button>
-              <mat-radio-button value="Other">Other</mat-radio-button>
-
+            <div>
+              <label class="gender-label">Gender*</label>
+              <mat-radio-group formControlName="gender">
+                <mat-radio-button value="Male">Male</mat-radio-button>
+                <mat-radio-button value="Female">Female</mat-radio-button>
+                <mat-radio-button value="Other">Other</mat-radio-button>
+              </mat-radio-group>
               @if (firstFormGroup.get("gender")?.invalid && (firstFormGroup.get("gender")?.touched || firstFormGroup.get("gender")?.dirty)){
-                  <mat-error style="font-size: 12px;">Select a gender</mat-error>
+                <mat-error style="font-size: 12px;">Select a gender</mat-error>
               }
-
-            </mat-radio-group>
+            </div>
 
             
             <div class="number-div">
@@ -189,7 +220,7 @@
               <mat-form-field appearance="outline">
 
                 <mat-label>Vehicle Number</mat-label>
-                <input matInput formControlName="vehicleNumber" placeholder="Enter vehicle number">
+                <input matInput formControlName="vehicleNumber" placeholder="TG12AB3456">
                 @if (firstFormGroup.get('vehicleNumber')?.invalid && firstFormGroup.get('vehicleNumber')?.touched) {
                   <mat-error>Vehicle number is required</mat-error>
                 }
@@ -211,7 +242,7 @@
 
                 <ng-template #showDoc>
 
-                  <mat-icon>file upload</mat-icon>
+                  <mat-icon>picture_as_pdf</mat-icon>
 
                   <div style="font-size: 12px;">{{ selectedKycFile?.name }}</div>
                   <div style="font-size: 10px; color: gray;" *ngIf="selectedKycFile">
@@ -230,7 +261,16 @@
             <ng-template #kycDialog>
               <div class="kyc-dialog-wrapper">
 
-                <h2 mat-dialog-title class="dialog-title">Upload KYC Documents</h2>
+                <!-- <h2 mat-dialog-title class="dialog-title">Upload KYC Document <button style="display: inline-block; border: none; background-color: white;"><mat-icon>close</mat-icon></button></h2> -->
+                
+                <div class="dialog-title">
+                  <h2 mat-dialog-title>Upload KYC Document</h2>
+                  <button (click)="closeKycDialog()">
+                    <mat-icon>
+                      close
+                    </mat-icon>
+                  </button>
+                </div>
 
                 <mat-divider></mat-divider>
 
@@ -241,12 +281,13 @@
                     <mat-select formControlName="kycDocType">
                       <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
                     </mat-select>
-                    <mat-error *ngIf="firstFormGroup.get('kycDocType')?.invalid && firstFormGroup.get('kycDocType')?.touched">
+                    <mat-error *ngIf="firstFormGroup.get('kycDocType')?.invalid || firstFormGroup.get('kycDocType')?.touched">
                       Select a document type
                     </mat-error>
                   </mat-form-field>
 
                   <div 
+                    [ngStyle]="{ borderColor: noKycInput ? 'red' : '#ccc' }"
                     class="kyc-drop-zone" 
                     [class.drag-over]="isDragOver"
                     (dragover)="onDragOver($event)" 
@@ -279,14 +320,15 @@
                     </button>
                   </div>
 
-                  @if (firstFormGroup.get("kycDocument")?.invalid && (firstFormGroup.get("kycDocument")?.touched || firstFormGroup.get("kycDocument")?.dirty)) {
+                  @if (firstFormGroup.get("kycDocument")?.invalid && (firstFormGroup.get("kycDocument")?.touched || firstFormGroup.get("kycDocument")?.dirty) || this.noKycInput) {
                     <mat-error>Upload a KYC document</mat-error>
                   }
 
                 </mat-dialog-content>
 
+                <mat-divider></mat-divider>
                 <mat-dialog-actions class="dialog-actions">
-                  <button mat-button (click)="cancelKycFile()">Cancel</button>
+                  <button mat-raised-button (click)="cancelKycFile()">Cancel</button>
                   <button mat-raised-button color="primary" (click)="saveKycFile()">Save</button>
                 </mat-dialog-actions>
 
@@ -295,7 +337,7 @@
 
 
 
-            <div style="margin-top: 16px;">
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end">
                 <button mat-raised-button color="primary" type="button"
                         (click)="goToNextStep(stepper)"
                         *ngIf="mode === 'add'">
@@ -306,7 +348,6 @@
                         (click)="editSubmitCheck()">
                         submit
                     </button>
-                <!-- add a click handler to submit the form -->
             </div>
         </form>
       </div>
@@ -403,14 +444,14 @@
             <div class="step-2-buttons">
                 <button *ngIf="mode === 'add'" mat-button color="primary" (click)="selectedIndex = 0; stepper.selectedIndex=0">Previous</button>
                 <button *ngIf="mode === 'add'" mat-raised-button color="primary" (click)="selectedIndex = 2; stepper.selectedIndex=2">Next</button>
-                <button *ngIf="mode === 'edit'" mat-button color="primary" (click)="logging()">submit</button>
+                <button *ngIf="mode === 'edit'" mat-raised-button color="primary" type="button" (click)="logging()">submit</button>
             </div>
           </div>
         </form>
       </div>
 
 
-      <div *ngSwitchCase="2">
+      <div *ngSwitchCase="2" class="review-step">
         
         <div class="header">
 
@@ -424,8 +465,6 @@
           </div>
 
         </div>
-
-        <mat-divider></mat-divider>
 
         <div class="detail-section">
           <h3>PERSONAL DETAILS</h3>
@@ -454,12 +493,13 @@
           </div>
         </div>
 
-        <div style="margin-top: 16px;">
-          <button mat-button (click)="selectedIndex = 1; stepper.selectedIndex = 1">Back</button>
-           <button type="button" (click)="logging()">Submit</button>
+        <div style="margin-top: 390px; display: flex; gap: 25px; justify-content: flex-end;">
+          <button mat-raised-button (click)="selectedIndex = 1; stepper.selectedIndex = 1">Back</button>
+          <button mat-raised-button color="primary" type="button" (click)="logging()"><mat-icon>add</mat-icon>Add Helper</button>
         </div>
-
       </div>
+
+      
 
     </div>
   </div>

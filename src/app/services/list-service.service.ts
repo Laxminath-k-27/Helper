@@ -12,8 +12,10 @@ export class ListServiceService {
 
   constructor(private http: HttpClient) {}
 
-  getAllHelpers(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  getAllHelpers(sortBy: string): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl, { 
+      params: { sortBy: sortBy } 
+    });
   }
 
   getHelperById(employeeId: string): Observable<any> {
@@ -33,6 +35,18 @@ export class ListServiceService {
     
     console.log(`${this.apiUrl}/filter`, { params });
     return this.http.get<any[]>(`${this.apiUrl}/filter/helpers`, { params });
+  }
+
+  getHelpersBySearchAndFilters(searchString: string, services: string[], organizations: string[], sortBy: string): Observable<any[]> {
+    
+    const params = {
+      services: services.join(',') || '',
+      organizations: organizations.join(',') || '',
+      searchString: searchString,
+      sortBy: sortBy
+    }
+
+    return this.http.get<any[]>(`${this.apiUrl}/search/filter`, { params });
   }
 
   deleteHelper(employeeId: string): Observable<any>{

@@ -4,7 +4,6 @@ import { NgIf, NgFor } from '@angular/common';
 import { ListServiceService } from './services/list-service.service';
 import { filter } from 'rxjs/operators';
 import { MatDividerModule } from '@angular/material/divider'
-import { MatIcon } from '@angular/material/icon';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card';
@@ -23,26 +22,27 @@ import { MatDialog } from '@angular/material/dialog';
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [RouterOutlet, 
-              RouterLink,
-              ReactiveFormsModule,
-              NgIf, 
-              NgFor,
-              MatDividerModule,
-              MatIcon,
-              MatToolbarModule,
-              MatSelectModule,
-              MatCardModule,
-              FormsModule,
-              MatInputModule,
-              MatIconModule,
-              MatButtonModule,
-              MatMenuModule,
-              MatCheckboxModule,
-              MatFormFieldModule,
-              MatOptionModule,
-              MatSnackBarModule,
-              DeleteSuccessDialogComponent],
+    imports: [
+      RouterOutlet, 
+      RouterLink,
+      ReactiveFormsModule,
+      NgIf, 
+      NgFor,
+      MatDividerModule,
+      MatToolbarModule,
+      MatSelectModule,
+      MatCardModule,
+      FormsModule,
+      MatInputModule,
+      MatIconModule,
+      MatButtonModule,
+      MatMenuModule,
+      MatCheckboxModule,
+      MatFormFieldModule,
+      MatOptionModule,
+      MatSnackBarModule,
+      DeleteSuccessDialogComponent
+    ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })
@@ -58,7 +58,8 @@ export class AppComponent implements OnInit{
     helperCount: number = 0;
     showCount: boolean = false;
 
-    sortBy= new FormControl();
+    sortBy = new FormControl();
+    currentSortBy: string = 'employeeId';
     filterBy = new FormControl();
 
     organizationsList: string[] = ['ASBL', 'Spring Helpers'];
@@ -75,10 +76,10 @@ export class AppComponent implements OnInit{
 
     ngOnInit(){
 
-      this.getTotalHelperCount()
+      // this.getTotalHelperCount()
 
-      // this.fetchHelpers();
-      this.checkToast(window.history.state);
+      this.fetchHelpers();
+      // this.checkToast(window.history.state);
 
       // this event runs regardless of ngOnInit
       this.router.events    // observable stream
@@ -86,7 +87,7 @@ export class AppComponent implements OnInit{
         filter(event => event instanceof NavigationEnd)   // normal filter for checking whether event is the NavigationEnd instance
       ).subscribe(() => {
         if (!this.isOtherRoute()) {
-          this.reserAllFilters();
+          this.resetAllFilters();
 
           this.fetchHelpers();
           // this.onClick(this.helpers[0].employedId)
@@ -97,14 +98,24 @@ export class AppComponent implements OnInit{
 
     }
 
-    reserAllFilters() {
+    isOtherRoute(){
+      // return this.router.url.includes('/add-helper') || this.router.url.includes('/edit-helper');
+      return this.router.url !== '/'
+    }
+
+    resetFilters(){
+      this.serviceFilter.setValue([]);
+      this.organizationFilter.setValue([]);
+    }
+
+    resetAllFilters() {
       this.searchQuery = '';
       this.gotTotalHelpers = false;
       this.showCount = false;
       this.helperCount = 0;
-      this.serviceFilter.setValue([]);
-      this.organizationFilter.setValue([]);
+      this.resetFilters();
     }
+
 
     checkToast(state: any) {
       if (state.showToast) {
@@ -127,9 +138,11 @@ export class AppComponent implements OnInit{
     }
 
     fetchHelpers(){
-      this.listService.getAllHelpers().subscribe(data=>{
+      this.listService.getAllHelpers(this.currentSortBy).subscribe(data=>{
         console.log(data);
+
         this.helpers=data;
+
         console.log(this.helpers[0].employeeId)
         this.onClick(this.helpers[0].employeeId)
 
@@ -144,32 +157,80 @@ export class AppComponent implements OnInit{
       if(this.searchQuery){
         this.listService.getHelpersBySearch(this.searchQuery).subscribe(data => {
           this.helpers = data;
+
           console.log("setch "+this.helpers[0])
           if(this.helpers.length > 0){
             this.onClick(this.helpers[0].employeeId);
           }else{
             this.noHelpers();
           }
+
         })
         this.showCount = true;
       }else{
-        this.reserAllFilters();
+        this.resetAllFilters();
         this.fetchHelpers()
         this.showCount = false;
       }
     }
 
-    isOtherRoute(){
-      // return this.router.url.includes('/add-helper') || this.router.url.includes('/edit-helper');
-      return this.router.url !== '/'
+    applyFilter() {
+      this.searchQuery = '';
+
+      const ser = this.serviceFilter.value || [];
+      const org = this.organizationFilter.value || [];
+
+      this.listService.getHelpersByFilter(ser, org).subscribe(data => {
+        this.helpers = data;
+
+        if (this.helpers.length > 0) {
+          console.log(this.helpers);
+          this.onClick(this.helpers[0].employeeId);
+        } else {
+          this.noHelpers();
+        }
+        if(ser.length > 0 || org.length > 0) this.showCount = true;
+        else this.showCount = false;
+      });
+    }
+
+    applySearchAndFilters(){
+      
+      const ser = this.serviceFilter.value || [];
+      const org = this.organizationFilter.value || [];
+      console.log(this.searchQuery);
+
+      if(this.searchQuery || ser.length > 0 || org.length > 0){
+        this.showCount = true;
+
+        try {
+          this.listService.getHelpersBySearchAndFilters(this.searchQuery, ser, org, this.currentSortBy).subscribe(
+            data => {
+              this.helpers = data;
+
+              if(this.helpers.length > 0){
+                this.onClick( this.helpers[0].employeeId );
+              }else{
+                this.noHelpers();
+              }
+            }
+          )
+        } catch (error) {
+          console.log("error", error);
+        }
+        
+      }else{
+        this.showCount = false;
+        this.fetchHelpers();
+      }
     }
 
     onClick(employedId: string){
       console.log(employedId)
       if(employedId){
         this.listService.getHelperById(employedId).subscribe(data => {
-          this.selectedHelper=data.data[0]
-          console.log("from onClick "+this.selectedHelper)
+          this.selectedHelper = data.data[0]
+          console.log("from onClick "+this.selectedHelper.employeeId)
           this.helperCount = this.helpers.length
         })
       }
@@ -180,23 +241,31 @@ export class AppComponent implements OnInit{
       this.helperCount = 0;
     }
 
-    sortHelpers(criterion: 'name' | 'employeeId' ) {
-      if (criterion === 'name') {
-        this.helpers.sort((a, b) =>
-          a.fullName.toLowerCase().localeCompare(b.fullName.toLowerCase())
-        );
-        this.onClick(this.helpers[0].employeeId);
-      } else if (criterion === 'employeeId') {
-        this.helpers.sort((a, b) =>{
-          const idA = parseInt(a.employeeId.replace(/\D/g, ''));
-          const idB = parseInt(b.employeeId.replace(/\D/g, ''));
-          // console.log(idA, idB)
-          return idA - idB;
-        })
-        console.log(this.helpers)
-        console.log(this.helpers[0].employeeId)
-        this.onClick(this.helpers[0].employeeId);
-      }
+    sortHelpers(criterion: 'fullName' | 'employeeId' ) {
+      this.currentSortBy = criterion;
+
+      this.applySearchAndFilters();
+
+      // if (criterion === 'name') { 
+
+      //   this.helpers.sort((a, b) =>
+      //     a.fullName.toLowerCase().localeCompare(b.fullName.toLowerCase())
+      //   );
+      //   this.onClick(this.helpers[0].employeeId);
+
+      // } else if (criterion === 'employeeId') {
+
+      //   this.helpers.sort((a, b) =>{
+      //     const idA = parseInt(a.employeeId.replace(/\D/g, ''));
+      //     const idB = parseInt(b.employeeId.replace(/\D/g, ''));
+      //     // console.log(idA, idB)
+      //     return idA - idB;
+      //   })
+      //   console.log(this.helpers)
+      //   console.log(this.helpers[0].employeeId)
+      //   this.onClick(this.helpers[0].employeeId);
+
+      // }
     }
 
     areAllServicesSelected(): boolean {
@@ -246,27 +315,11 @@ export class AppComponent implements OnInit{
     }
 
 
-    applyFilter() {
-      const ser = this.serviceFilter.value || [];
-      const org = this.organizationFilter.value || [];
-
-      this.listService.getHelpersByFilter(ser, org).subscribe(data => {
-        this.helpers = data;
-
-        if (this.helpers.length > 0) {
-          console.log(this.helpers);
-          this.onClick(this.helpers[0].employeeId);
-        } else {
-          this.noHelpers();
-        }
-        if(ser.length > 0 || org.length > 0) this.showCount = true;
-        else this.showCount = false;
-      });
-    }
-
     getInitials(name: string): string {
       const parts = name.split(' ');
-      return parts.map(p => p[0]).join('').toUpperCase();
+      const ret = parts.map(p => p[0]).join('').toUpperCase();
+      console.log(ret);
+      return ret;
     }
 
     getFileUrl(path: string): string {
@@ -287,6 +340,7 @@ export class AppComponent implements OnInit{
     }
 
     deleteHelper(employedId: string) {
+
       const confirmDialogRef = this.dialog.open(DeleteSuccessDialogComponent, {
         width: '650px',
         height: '200px',
@@ -300,10 +354,11 @@ export class AppComponent implements OnInit{
           this.listService.deleteHelper(employedId).subscribe(res => {
             const ret = res.message.split(' ');
             if (ret[0] === 'true' && ret[1] === 'true') {
-              this.selectedHelper= null;
+              const delhelper = this.selectedHelper.fullName;
+              this.selectedHelper = null;
               this.fetchHelpers();
 
-              this.showSuccessToast('Helper deleted successfully!');
+              this.showSuccessToast(`${delhelper} deleted successfully!`);
             }
           });
         }

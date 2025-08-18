@@ -1,11 +1,10 @@
 .main-container {
     display: flex;
     flex-direction: column;
-    height: 97vh;
-    background-color: #f8fafc;
+    gap: 5px;
+    height: 100%;
+    // background-color: #f8fafc;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    border: 5px solid #e5e7eb;
-    overflow-y: auto;
 }
 
 mat-toolbar {
@@ -25,6 +24,7 @@ mat-toolbar {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 13px;
 }
 
 .controls-bar {
@@ -101,40 +101,54 @@ mat-toolbar {
     }
 }
 
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.filter-reset {
+  color: #d32f2f; 
+  font-size: 13px;
+  font-weight: 500;
+  height: 20px;
+  margin-right: 15px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+
 .control-grid3 {
     padding: 0;
     max-height: 20px;
 }
 
-.mat-mdc-form-field-subscript-wrapper{
-    display: none !important;
-    height: 0px !important;
-}
+// .search-input {
+//     max-width: 100px;
+// }
 
-.search-input {
-    max-width: 100px;
-}
+// .search-div:hover {
+//     background-color: white !important;
+// }
 
-.search-div:hover {
-    background-color: white !important;
-}
+// .search-div:focus-within {
+//     background-color: white !important;
+// }
 
-.search-div:focus-within {
-    background-color: white !important;
-}
+// .search-div.mat-raised-button.mat-button-base {
+//   background-color: white !important;
+// }
 
-.search-div.mat-raised-button.mat-button-base {
-  background-color: white !important;
-}
+// .search-div.mat-raised-button.mat-button-base:hover {
+//   background-color: white !important;
+//   box-shadow: none !important;
+// }
 
-.search-div.mat-raised-button.mat-button-base:hover {
-  background-color: white !important;
-  box-shadow: none !important; // optional: remove shadow change on hover
-}
-
-.search-div .mat-ripple-element {
-  display: none !important; // removes click ripple
-}
+// .search-div .mat-ripple-element {
+//   display: none !important;
+// }
 
 .home-container {
     display: flex;
@@ -197,11 +211,15 @@ mat-toolbar {
         background-color: #f8fafc;
         border-color: #d1d5db;
     }
-    
+
     &:active {
-        background-color: #f1f5f9;
-        background-color: var(--primary-color-light);
-        border-color: var(--primary-color);
+        background-color: #f8fafc;
+        border-color: #d1d5db;
+    }
+
+    &.active {
+        background-color: #f0f4ff;
+        box-shadow: 0 0 0 2px rgba(99,102,241,.2) inset;
     }
 }
 
@@ -214,7 +232,6 @@ mat-toolbar {
 }
 
 .helper-pic {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     font-weight: 600;
     font-size: 16px;
@@ -272,18 +289,22 @@ mat-toolbar {
 }
 
 .form-container {
-    padding: 24px;
-    background-color: #f8fafc;
-    height: 100vh;
-    
-    button {
-        background-color: #6b7280 !important;
-        color: white !important;
-        border-radius: 8px !important;
-        font-weight: 500 !important;
-        text-transform: none !important;
-    }
+  height: 100%;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow-y: hidden;
 }
+
+.router-wrapper {
+    overflow-y: hidden;
+}
+
+
+
 
 .helper-detail-card {
     background: white;
@@ -292,7 +313,7 @@ mat-toolbar {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     border: 1px solid #f1f5f9;
-    height: 100%;
+    height: 89.3%;
 }
 
 .header {
@@ -308,7 +329,7 @@ mat-toolbar {
 }
 
 .avatar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    // background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     width: 64px;
     height: 64px;
@@ -389,6 +410,8 @@ mat-toolbar {
         padding-left: 12px;
         display: flex;
         align-items: center;
+        display: flex;
+        align-items: center;
 
         &::after {
             content: '';
@@ -445,6 +468,8 @@ mat-toolbar {
     }
 }
 
+
+
 mat-menu {
     .mat-mdc-menu-panel {
         border-radius: 12px !important;
@@ -466,14 +491,73 @@ mat-menu {
         }
     }
     
-    &#sortMenu {
-        width: 200px !important;
-        
-        div:first-child {
-            padding: 8px 16px !important;
-            font-weight: 500 !important;
+        &#sortMenu {
+
+            .mat-mdc-menu-panel {
+                min-width: 280px !important;
+                width: 320px !important;
+            }
+
+            .sort-header {
+                padding: 12px 16px 8px 16px !important;
+                font-weight: 500 !important;
+                font-size: 14px !important;
+                color: #6b7280 !important;
+                border-bottom: 1px solid #f3f4f6 !important;
+                margin-bottom: 4px !important;
+                pointer-events: none;
+            }
+
+            .sort-option {
+                // display: flex !important;
+                // justify-content: space-between !important;
+                // align-items: center !important;
+                // padding: 12px 16px !important;
+                // font-size: 14px !important;
+                // min-height: 44px !important;
+                // width: 100% !important;
+
+                padding: 0 !important;
+                .menu-item-content {
+                    display: flex !important;
+                    justify-content: space-between !important;
+                    align-items: center !important;
+                    width: 100% !important;
+                    padding: 12px 16px !important;
+                }
+
+                &.selected {
+                    background-color: #f0f4ff !important;
+                    color: #3b82f6 !important;
+
+                    .check-icon {
+                        color: #3b82f6 !important;
+                    }
+                }
+
+                &:hover {
+                    background-color: #f8fafc !important;
+                    &.selected {
+                        background-color: #e0e7ff !important;
+                    }
+                }
+
+                
+                .check-icon {
+                    font-size: 4px !important;
+                    width: 18px !important;
+                    height: 18px !important;
+                    margin-left: auto !important;
+                    float: right !important;
+                }
+
+                span {
+                    flex: 1;
+                    text-align: left;
+                    margin-right: 8px;
+                }
+            }
         }
-    }
     
     &#filterMenu {
         .mat-mdc-menu-panel {
@@ -602,3 +686,5 @@ div[style*="padding: 8px 16px 4px 16px; font-weight: 500;"] {
         }
     }
 }
+
+

@@ -1,8 +1,9 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule, DecimalPipe, NgFor, NgIf  } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
-import { FormsModule, ReactiveFormsModule, Validators, FormBuilder, FormGroup, FormControl} from '@angular/forms';
+import { Router, ActivatedRoute , RouterLink} from '@angular/router';
+import { FormsModule, ReactiveFormsModule, Validators, FormBuilder, FormControl } from '@angular/forms';
+
 
 import { MatOption, MatPseudoCheckbox } from '@angular/material/core';
 import { MatStepperModule,MatStepper } from '@angular/material/stepper';
@@ -29,6 +30,7 @@ import { ListServiceService } from '../services/list-service.service';
 import { FileUtilsService } from '../services/file-utils.service';
 
 
+
 @Component({
   selector: 'app-add-edit-helper',
   standalone: true,
@@ -40,7 +42,7 @@ import { FileUtilsService } from '../services/file-utils.service';
     HttpClientModule,
     FormsModule, 
     ReactiveFormsModule,
-
+    RouterLink,
     MatStepperModule,
     MatFormFieldModule,
     MatInputModule,
@@ -72,15 +74,20 @@ export class AddEditHelperComponent implements OnInit{
   vehicleTypes: string[] = ['none', 'Bike', 'Car', 'Auto'];
   documentTypes = ['Aadhar', 'Voter ID', 'Passport', 'PAN Card'];
 
+
   @ViewChild('stepper') stepper!: MatStepper; // a
   @ViewChild('kycDialog') kycDialogTemplate!: any;  // a
 
   photoUrl: String | null = null;
+  photoSizeError: boolean = false;
+  photoTypeError: boolean = false;
 
   helperData: any;  //d
 
   kycDialogRef: MatDialogRef<any> | null = null;
   selectedKycFile: File | null = null; // a
+
+  noKycInput: boolean = false;
   // kycFile: File | null = null; // d
 
   otherDialogRef: MatDialogRef<any> | null = null;
@@ -133,17 +140,19 @@ export class AddEditHelperComponent implements OnInit{
 
     console.log(this.id)
 
-    this.listService.getHelperById(this.id).subscribe(data => {
-      this.helperData=data.data[0];
-      console.log(this.helperData);
-      if(this.mode === 'edit'){
-        console.log('Edit mode activated');
-      }
-      this.createForm(this.helperData)
-    })
+    if(this.mode === 'edit'){
+      this.listService.getHelperById(this.id).subscribe(data => {
+        this.helperData=data.data[0];
+        console.log(this.helperData);
+        if(this.mode === 'edit'){
+          console.log('Edit mode activated');
+        }
+        this.createForm(this.helperData)
+      })
+    }
+    
 
   }
-
 
   firstFormGroup = this._formBuilder.group({
     fullName: ['', Validators.required],
@@ -156,7 +165,7 @@ export class AddEditHelperComponent implements OnInit{
     phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
     vehicleType: ['none'],
     vehicleNumber: [''],
-    photo: [null as File | null],
+    photo: [ null as File | null ],
     kycDocument: [null as File | null, Validators.required],
     kycDocType: ['', { validators: [Validators.required], updateOn: 'blur' }]
   });
@@ -206,24 +215,47 @@ export class AddEditHelperComponent implements OnInit{
     fileInput.click();
   }
 
+
   onFileSelected(event: Event){
-  const input = event.target as HTMLInputElement;
+    const input = event.target as HTMLInputElement;
 
-  if (input.files && input.files.length > 0) {
-    const file = input.files[0];
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const MAX_BYTES = 5 * 1024 * 1024;
+      const ALLOWED_TYPES = ['image/png', 'image/jpeg'];
 
-    this.firstFormGroup.get('photo')?.setValue(file);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        this.photoUrl = result; 
+      if (file.size > MAX_BYTES) {
+        this.firstFormGroup.get('photo')?.setValue(null, { emitEvent: false });
+        this.photoUrl = null;
+        input.value = '';
+        this.photoSizeError = true;
+        setTimeout(() => { this.photoSizeError = false; }, 2000);
+        
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        this.firstFormGroup.get('photo')?.setValue(null, { emitEvent: false });
+        this.photoUrl = null;
+        input.value = '';
+        this.photoTypeError = true;
+        setTimeout( () => { this.photoTypeError = false }, 2000);
+
+        return;
+      }
+
+      this.firstFormGroup.get('photo')?.setValue(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === 'string') {
+          this.photoUrl = result; 
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   }
-}
 
   openKycUploadModal(templateRef: any){
     this.kycDialogRef = this.dialog.open(templateRef, {
@@ -237,6 +269,7 @@ export class AddEditHelperComponent implements OnInit{
     if (tempfile && tempfile.type === 'application/pdf') {
       this.selectedKycFile = tempfile;
       this.firstFormGroup.get('kycDocument')?.setValue(tempfile);
+      this.noKycInput = false;
     }
   }
 
@@ -277,9 +310,16 @@ export class AddEditHelperComponent implements OnInit{
   }
 
   saveKycFile(){
+    this.firstFormGroup.get('kycDocType')?.markAsTouched()
     if (this.firstFormGroup.get('kycDocType')?.value && this.selectedKycFile) {
       this.kycDialogRef?.close();
+    }else{
+      this.noKycInput = true;
     }
+  }
+
+  closeKycDialog(){
+    this.kycDialogRef?.close();
   }
 
   cancelKycFile(): void {
@@ -400,6 +440,7 @@ export class AddEditHelperComponent implements OnInit{
       this.stepper.selectedIndex = event.previouslySelectedIndex;
     }
   }
+
   getFileUrl(file: string | File | null | undefined): string {
     if (!file) return '';
     if (typeof file === 'string') {
@@ -493,24 +534,13 @@ submitForm(): void {
     if (otherFile) formData.append('otherDocument', otherFile);
 
 
-    this.http.post<{ message: string; employeeId: string }>('http://localhost:3000/api/helpers', formData).subscribe({
+    this.http.post<any>('http://localhost:3000/api/helpers', formData).subscribe({
       next: (res) => {
 
         console.log('Saved!', res);
+        console.log(res);
 
-        this.firstFormGroup.reset();
-        this.secondFormGroup.reset();
-
-        this.selectedKycFile = null;
-        this.photoUrl = null;
-
-        const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
-        fileInputs.forEach((id) => {
-          const el = document.getElementById(id) as HTMLInputElement;
-          if (el) el.value = '';
-        });
         
-        this.stepper.reset();
 
         const tickDialogRef = this.dialog.open(TickDialogComponent, {
           width: '300px',
@@ -520,13 +550,40 @@ submitForm(): void {
         setTimeout(() => {
           tickDialogRef.close();
 
-          this.dialog.open(QrDialogComponent, {
-            width: '350px',
-            data: { employeeId: res.employeeId }
+          const qrDialogRef = this.dialog.open(QrDialogComponent, {
+            width: '820px',
+            height: '500px',
+            data: { 
+              employeeId: res.employeeId,
+              organization: res.organization,
+              phone: res.phoneNumber,
+              joinedDate: res.joinedDate,
+              fullName: res.fullName,
+              services: res.services
+           }
           });
+
+          qrDialogRef.afterClosed().subscribe(() => {
+            this.firstFormGroup.reset();
+            this.secondFormGroup.reset();
+
+            this.selectedKycFile = null;
+            this.photoUrl = null;
+
+            const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
+            fileInputs.forEach((id) => {
+              const el = document.getElementById(id) as HTMLInputElement;
+              if (el) el.value = '';
+            });
+            
+            this.stepper.reset();
+
+            this.router.navigate(['../']);
+          })
+
         }, 1500);
 
-        this.router.navigate(['../']);
+        // this.router.navigate(['../']);
       },
       error: (err) => console.error('Failed to save', err)
     });

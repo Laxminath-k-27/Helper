@@ -1,4 +1,57 @@
-<div style="display: flex; flex-direction: column; align-items: center; padding: 32px;">
-    <qrcode [qrdata]="data.employeeId" [width]="200"></qrcode>
+<!-- <div style="display: flex; flex-direction: column; align-items: center; padding: 32px;">
+    <qrcode [qrdata]="data.employeeId" [width]="20"></qrcode>
     <div style="margin-top: 16px; font-size: 18px;">Employee ID: {{ data.employeeId }}</div>
+</div> -->
+
+
+<div class="employee-dialog" id="printArea">
+  <div class="dialog-header">
+    <h3>Employee ID</h3>
+    <button class="close-btn" mat-icon-button (click)="closeDialog()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    <div class="left-column">
+      <div class="avatar-wrap">
+        <div class="avatar-placeholder">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="name">{{ data.fullName }}</div>
+        <div class="role">{{ data.services }}</div>
+        <div class="emp-number">#{{ data.employeeId }}</div>
+      </div>
+
+      <div class="qr-block">
+        <qrcode [qrdata]="data.employeeId" [width]="140"></qrcode>
+        <div class="qr-caption">Scan to verify</div>
+      </div>
+
+      <div class="brand-strip">ASBL SPRINGS — verification services</div>
+    </div>
+
+    <div class="right-column">
+      <div class="info-card">
+        <div class="info-row"><span class="label">Organisation</span><span class="value">{{ data.organization || 'Springs Helpers' }}</span></div>
+        <div class="info-row"><span class="label">Emp ID</span><span class="value">{{ data.employeeId }}</span></div>
+        <div class="info-row"><span class="label">Phone number</span><span class="value">{{ data.phone || '9090901234' }}</span></div>
+        <div class="info-row"><span class="label">Joined date</span><span class="value">{{ formatDate(data.joinedDate) || '15/06/2025' }}</span></div>
+        <!-- <div class="info-row"><span class="label">Organisation</span><span class="value">{{ 'Springs Helpers' }}</span></div>
+        <div class="info-row"><span class="label">Emp ID</span><span class="value">{{ data.employeeId }}</span></div>
+        <div class="info-row"><span class="label">Phone number</span><span class="value">{{ '9090901234' }}</span></div>
+        <div class="info-row"><span class="label">Joined date</span><span class="value">{{ '15/06/2025' }}</span></div> -->
+      </div>
+
+      <div class="qr-block second">
+        <qrcode [qrdata]="data.employeeId + '-card'" [width]="140"></qrcode>
+        <div class="small-note">Unauthorised usage could be considered a legal offense.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <button mat-raised-button>Print</button>
+    <button mat-raised-button color="primary">Download</button>
+  </div>
 </div>
