@@ -1,0 +1,24 @@
+mat-form-field {
+    width: 100%;
+}
+
+.select-all-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  .mat-divider-horizontal {
+    width: 100%;
+  }
+
+  span {
+    margin: 0 15px;
+  }
+}
+
+.checkbox {
+    margin: 0 6px;
+    width: 150px;
+}
+

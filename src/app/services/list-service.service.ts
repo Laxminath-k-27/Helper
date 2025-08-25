@@ -12,7 +12,7 @@ export class ListServiceService {
 
   constructor(private http: HttpClient) {}
 
-  getAllHelpers(sortBy: string): Observable<any[]> {
+  getAllHelpers( sortBy: string ): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, { 
       params: { sortBy: sortBy } 
     });
@@ -20,21 +20,6 @@ export class ListServiceService {
 
   getHelperById(employeeId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${employeeId}`);
-  }
-
-  getHelpersBySearch(searchString: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/search/${encodeURIComponent(searchString)}`);
-  }
-
-  getHelpersByFilter(services: string[], organizations: string[]): Observable<any[]> {
-    
-    const params = {
-      services: services.join(',') || '',
-      organizations: organizations.join(',') || ''
-    };
-    
-    console.log(`${this.apiUrl}/filter`, { params });
-    return this.http.get<any[]>(`${this.apiUrl}/filter/helpers`, { params });
   }
 
   getHelpersBySearchAndFilters(searchString: string, services: string[], organizations: string[], sortBy: string): Observable<any[]> {

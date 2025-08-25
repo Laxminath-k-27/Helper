@@ -1,0 +1,36 @@
+<mat-form-field appearance="outline">
+  <mat-label>{{ label }}</mat-label>
+
+  <mat-select [formControl]="control" multiple>
+    <mat-select-trigger>
+      {{ control.value?.[0] || '' }}
+      @if ((control.value?.length || 0) > 1) {
+        <span class="example-additional-selection">
+          (+{{ (control.value?.length || 0) - 1 }})
+        </span>
+      }
+    </mat-select-trigger>
+
+    <div class="select-all-section">
+      <mat-checkbox
+        class="checkbox"
+        [checked]="areAllSelected()"
+        [indeterminate]="isIndeterminate()"
+        (change)="toggleSelectAll($event)">
+        Select All
+      </mat-checkbox>
+      <mat-divider horizontal></mat-divider>
+      <span>
+        {{ control.value?.length || 0 }}/{{ items.length }}
+      </span>
+    </div>
+
+    <mat-option *ngFor="let item of items" [value]="item">
+      {{ item }}
+    </mat-option>
+  </mat-select>
+
+  @if (errorMessage && control.invalid) {
+    <mat-error>{{ errorMessage }}</mat-error>
+  }
+</mat-form-field>

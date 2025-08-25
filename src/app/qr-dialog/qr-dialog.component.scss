@@ -1,5 +1,5 @@
 .employee-dialog {
-  width: 820px; // tweak to fit your dialog container
+  width: 820px; 
   max-width: calc(100vw - 64px);
   display: flex;
   flex-direction: column;
@@ -31,7 +31,7 @@
     grid-template-columns: 360px 1fr;
     gap: 24px;
     padding: 28px 36px;
-    min-height: 380px;
+    min-height: 450px;
 
     .left-column {
       display: flex;
@@ -49,7 +49,7 @@
           width: 110px;
           height: 110px;
           border-radius: 50%;
-          border: 6px solid #f59e0b; // orange ring
+          border: 6px solid #f59e0b;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -94,19 +94,8 @@
           font-size: 12px;
           color: #6b7280;
         }
-      }
-
-      .brand-strip {
-        margin-top: 10px;
-        background: #f97316;
-        color: #fff;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        text-align:center;
-        width:100%;
-      }
-    } // left-column
+      } 
+    }
 
     .right-column {
       display: flex;
@@ -152,8 +141,8 @@
           max-width: 220px;
         }
       }
-    } // right-column
-  } // dialog-body
+    }
+  }
 
   .dialog-footer {
     display:flex;
@@ -171,7 +160,17 @@
   }
 }
 
-/* Responsive */
+.brand-strip {
+        margin-top: 10px;
+        background: #f97316;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-align:center;
+        width:100%;
+      }
+
 @media (max-width: 900px) {
   .employee-dialog .dialog-body {
     grid-template-columns: 1fr;

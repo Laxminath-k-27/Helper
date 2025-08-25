@@ -1,0 +1,70 @@
+<div class="file-dialog-wrapper">
+  <div class="dialog-title">
+    <h2>{{ title }}</h2>
+    <button type="button" (click)="closeDialog()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <mat-dialog-content class="dialog-content">
+
+    <mat-form-field appearance="outline" class="doc-field">
+      <mat-label>Document Type</mat-label>
+      <mat-select [formControl]="control">
+        <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="formGroup.get(controlName)?.invalid && formGroup.get(controlName)?.touched">
+        Select a document type
+      </mat-error>
+    </mat-form-field>
+
+    <div
+      class="drop-zone"
+      [class.drag-over]="isDragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      [ngStyle]="{ borderColor: isDocInvalid() ? 'red' : '#ccc' }"
+    >
+        <p>Please ensure both sides of the document are uploaded.</p>
+        <p class="upload-text">Drag & drop file here or
+            <button type="button" (click)="fileInput.click()" class="browse-btn">
+                browse
+            </button>
+        </p>
+        
+        <input 
+            #fileInput 
+            type="file"
+            id="docInput"
+            [accept]="accept" 
+            (change)="onFileChange($event)" 
+            hidden 
+        />
+    </div>
+
+    <div *ngIf="selectedFile" class="file-container">
+        <mat-icon class="file-icon">picture_as_pdf</mat-icon>
+        <span class="file-name">
+            {{ selectedFile.name }} ({{ (selectedFile.size/1024).toFixed(2) }} KB)
+        </span>
+        <button mat-icon-button type="button" (click)="deleteFile()" aria-label="Delete File" class="delete-btn">
+            <mat-icon color="warn">delete</mat-icon>
+        </button>
+    </div>
+
+    <mat-error *ngIf="isDocInvalid()">
+        Upload a KYC Document
+    </mat-error>    
+
+  </mat-dialog-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="cancelFile()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveFile()">Save</button>
+  </mat-dialog-actions>
+</div>

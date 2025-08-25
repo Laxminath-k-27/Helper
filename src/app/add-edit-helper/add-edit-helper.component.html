@@ -1,5 +1,5 @@
 <nav class="back-nav">
-  
+
   <button  [routerLink]="['../']" *ngIf="mode === 'add'">
     <mat-icon>arrow_back</mat-icon>
     Add Helper
@@ -10,7 +10,6 @@
   </button>
 
 </nav>
-
 
 <div class="custom-stepper-container" >
 
@@ -28,20 +27,16 @@
   <div class="stepper-content" >
     <div [ngSwitch]="selectedIndex" >
 
-      <div *ngSwitchCase="0" style="overflow-y: hidden;">
+      <div *ngSwitchCase="0">
         <form [formGroup]="firstFormGroup">
-          <div>
-            <div *ngIf="mode === 'add'" style="margin: 0 0; font-size: 20px;">Helper Details</div>
-            <p *ngIf="mode === 'add'" style="margin: 4px 0; font-size: 12px; color: gray;">
-              Track, Add & Manage all your helpers at one place
-            </p>
+          <div class="desc-div">
+            <div>Helper Details</div>
+            <p>Track, Add & Manage all your helpers at one place</p>
           </div>
-          
 
             <div class="file-upload-div">
 
-              <button mat-fab type="button" color="warm" (click)="triggerFileInput(fileInput)"
-                class="big-fab">
+              <button mat-fab type="button" color="warm" (click)="triggerFileInput(fileInput)" class="big-fab">
 
                 <ng-container *ngIf="photoUrl; else iconOnly">
                   <img [src]="photoUrl"  width="120" height="120" style="object-fit: cover;" />
@@ -77,11 +72,10 @@
               </mat-select>
 
               @if (firstFormGroup.get("services")?.invalid){
-                  <mat-error>Select the service</mat-error>
+                <mat-error>Select the service</mat-error>
               }
 
             </mat-form-field>
-
 
             <mat-form-field class="organization-field" appearance="outline">
 
@@ -105,51 +99,17 @@
                 <input matInput placeholder="Last name, First name" formControlName="fullName">
 
                 @if (firstFormGroup.get("fullName")?.invalid){
-                    <mat-error>Enter valid Full Name</mat-error>
+                  <mat-error>Enter valid Full Name</mat-error>
                 }
 
             </mat-form-field>
 
-            <mat-form-field  appearance="outline">
-
-              <mat-label>Languages</mat-label>
-
-              <mat-select formControlName="languages" multiple (selectionChange)="onLanguageSelectionChange($event)">
-
-                <mat-select-trigger>
-                    {{firstFormGroup.get("languages")?.value?.[0] || ''}}
-                    @if ((firstFormGroup.get("languages")?.value?.length || 0) > 1) {
-                        <span class="example-additional-selection">
-                        (+{{(firstFormGroup.get("languages")?.value?.length || 0) - 1}})
-                        </span>
-                    }
-                </mat-select-trigger>
-                
-                <div class="lang-checkbox">
-                  <mat-checkbox
-                    style="margin: 0 6px; width: 150px;"
-                    [checked]="areAllLanguagesSelected()"
-                    [indeterminate]="areLanguagesIndeterminate()"
-                    (change)="toggleSelectAllLanguages($event)">
-                    Select All
-                  </mat-checkbox>
-                  <mat-divider horizontal></mat-divider>
-                  <span style="margin: 0 15px;">{{firstFormGroup.get('languages')?.value?.length || 0}}/{{languagesList.length}}</span>
-                </div>
-
-                
-
-                <mat-option *ngFor="let lang of languagesList" [value]="lang">
-                  {{ lang }}
-                </mat-option>
-
-              </mat-select>
-
-              @if (firstFormGroup.get("languages")?.invalid){
-                  <mat-error>Select at least on language</mat-error>
-              }
-
-            </mat-form-field>
+            <app-multi-select-with-select-all
+              label="Languages"
+              [items]="languagesList"
+              errorMessage="Select at least one language"
+              [control]="languageControl">
+            </app-multi-select-with-select-all>
 
             <div>
               <label class="gender-label">Gender*</label>
@@ -163,7 +123,6 @@
               }
             </div>
 
-            
             <div class="number-div">
 
               <mat-form-field appearance="outline" style="width: 100px;">
@@ -193,18 +152,16 @@
               </mat-form-field>
             </div>
 
-
             <mat-form-field appearance="outline">
 
                 <mat-label>Email</mat-label>
                 <input matInput placeholder="Example@gmail.com" formControlName="email">
                 @if (firstFormGroup.get("email")?.invalid){
-                    <mat-error>Enter valid Email</mat-error>
+                  <mat-error>Enter valid Email</mat-error>
                 }
 
             </mat-form-field>
-
-            
+          
             <mat-form-field appearance="outline">
 
               <mat-label>Vehicle Type</mat-label>
@@ -228,222 +185,131 @@
               </mat-form-field>
             }
 
-
             <div class="add-kyc-div">
 
               <button type="button" mat-raised-button
                 (click)="openKycUploadModal(kycDialog)"
                 [ngStyle]="{ borderColor: isKycInvalid() ? 'red' : '#ccc' }">
 
-                <ng-container *ngIf="!selectedKycFile; else showDoc">
+                <ng-container *ngIf="!kycDocumentControl?.value; else showDoc">
                   <mat-icon>add</mat-icon>
                   <div>Upload KYC</div>
                 </ng-container>
 
                 <ng-template #showDoc>
+                  <div class="doc-row">
+                    <mat-icon>picture_as_pdf</mat-icon>
 
-                  <mat-icon>picture_as_pdf</mat-icon>
-
-                  <div style="font-size: 12px;">{{ selectedKycFile?.name }}</div>
-                  <div style="font-size: 10px; color: gray;" *ngIf="selectedKycFile">
-                    {{ ( selectedKycFile.size / 1024) | number:'1.2-2' }} KB
+                    <div class="doc-name" [matTooltip]="kycDocumentControl.value?.name || ''">
+                      {{ kycDocumentControl.value?.name }}
+                    </div>
                   </div>
-                  <div style="font-size: 10px; color: gray;" *ngIf="!selectedKycFile">
+
+                  <div class="doc-meta" *ngIf="kycDocumentControl?.value">
+                    {{ (kycDocumentControl.value.size / 1024) | number:'1.2-2' }} KB
+                  </div>
+                  <div class="doc-meta" *ngIf="!kycDocumentControl?.value">
                     0.00 KB
                   </div>
-
                 </ng-template>
 
               </button>
             </div>
 
-
             <ng-template #kycDialog>
-              <div class="kyc-dialog-wrapper">
 
-                <!-- <h2 mat-dialog-title class="dialog-title">Upload KYC Document <button style="display: inline-block; border: none; background-color: white;"><mat-icon>close</mat-icon></button></h2> -->
-                
-                <div class="dialog-title">
-                  <h2 mat-dialog-title>Upload KYC Document</h2>
-                  <button (click)="closeKycDialog()">
-                    <mat-icon>
-                      close
-                    </mat-icon>
-                  </button>
-                </div>
+              <app-file-upload-dialog
+                [title]="'Upload KYC Document'"
+                [formGroup]="firstFormGroup"
+                [controlName]="'kycDocument'"
+                [controlNameType]="'kycDocType'"
+                [documentTypes]="documentTypes"
+                (save)="saveKycFileEmit()"
+                (close)="closeKycDialogRef()">
+              </app-file-upload-dialog>
 
-                <mat-divider></mat-divider>
-
-                <mat-dialog-content class="dialog-content">
-
-                  <mat-form-field appearance="outline" class="kyc-form-field">
-                    <mat-label>Document Type</mat-label>
-                    <mat-select formControlName="kycDocType">
-                      <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="firstFormGroup.get('kycDocType')?.invalid || firstFormGroup.get('kycDocType')?.touched">
-                      Select a document type
-                    </mat-error>
-                  </mat-form-field>
-
-                  <div 
-                    [ngStyle]="{ borderColor: noKycInput ? 'red' : '#ccc' }"
-                    class="kyc-drop-zone" 
-                    [class.drag-over]="isDragOver"
-                    (dragover)="onDragOver($event)" 
-                    (dragleave)="onDragLeave($event)" 
-                    (drop)="onDrop($event)">
-
-                    <p>Please ensure both sides of the document are uploaded.</p>
-                    <p class="upload-txt">Drag & drop PDF here or 
-                      <button type="button" (click)="fileInput.click()" class="browse-btn">
-                        browse
-                      </button>
-                    </p>
-
-                    <input 
-                      type="file" 
-                      #fileInput
-                      id="kycInput" 
-                      accept="application/pdf" 
-                      (change)="onKycFileSelected($event)" 
-                      hidden/>
-                  </div>
-
-                  <div *ngIf="selectedKycFile" class="kyc-file-container">
-                    <mat-icon class="file-icon">picture_as_pdf</mat-icon>
-                    <span class="file-name">
-                      {{ selectedKycFile.name }} ({{ (selectedKycFile.size / 1024).toFixed(2) }} KB)
-                    </span>
-                    <button mat-icon-button type="button" (click)="deleteKycFile()" aria-label="Delete KYC file" class="delete-btn">
-                      <mat-icon color="warn">delete</mat-icon>
-                    </button>
-                  </div>
-
-                  @if (firstFormGroup.get("kycDocument")?.invalid && (firstFormGroup.get("kycDocument")?.touched || firstFormGroup.get("kycDocument")?.dirty) || this.noKycInput) {
-                    <mat-error>Upload a KYC document</mat-error>
-                  }
-
-                </mat-dialog-content>
-
-                <mat-divider></mat-divider>
-                <mat-dialog-actions class="dialog-actions">
-                  <button mat-raised-button (click)="cancelKycFile()">Cancel</button>
-                  <button mat-raised-button color="primary" (click)="saveKycFile()">Save</button>
-                </mat-dialog-actions>
-
-              </div>
             </ng-template>
 
-
-
-            <div style="margin-top: 16px; display: flex; justify-content: flex-end">
-                <button mat-raised-button color="primary" type="button"
+            <div class="next-div">
+                <button mat-raised-button type="button"
                         (click)="goToNextStep(stepper)"
                         *ngIf="mode === 'add'">
-                  Next
+                  <span>Next</span>
+                  <mat-icon *ngIf="mode === 'add'">chevron_right</mat-icon>
                 </button>
                 <button mat-raised-button color="primary" type="button"
                         *ngIf="mode === 'edit'"
                         (click)="editSubmitCheck()">
                         submit
-                    </button>
+                </button>
             </div>
         </form>
       </div>
 
       <div *ngSwitchCase="1">
-
         <form [formGroup]="secondFormGroup">
+
+          <div class="desc-div">
+            <div>Additional Documents</div>
+            <p>
+              Upload related documents. This step is optional.
+            </p>
+          </div>
 
           <div class="add-other-div">
 
             <button class="other-div-button" type="button" mat-raised-button
-              (click)="openOtherUploadModal(otherDialog)">
+              (click)="openOtherUploadModal(otherDialog)"
+              [ngStyle]="{ borderColor: isOtherInvalid() ? 'red' : '#ccc' }">
 
-              <ng-container *ngIf="!selectedOtherFile; else showDocOther">
+              <ng-container *ngIf="!otherDocControl?.value; else showDocOther">
                 <mat-icon>add</mat-icon>
                 <div style="font-size: 12px; color: gray;">Upload Other File</div>
               </ng-container>
 
               <ng-template #showDocOther>
-                <mat-icon>picture_as_pdf</mat-icon>
-                <div style="font-size: 12px;">{{ selectedOtherFile?.name }}</div>
-                <div style="font-size: 10px; color: gray;" *ngIf="selectedOtherFile">
-                  {{ (selectedOtherFile.size / 1024) | number:'1.2-2' }} KB
+                <div class="doc-row">
+                  <mat-icon>picture_as_pdf</mat-icon>
+
+                  <div class="doc-name" [matTooltip]="otherDocControl.value?.name || ''">
+                    {{ otherDocControl.value?.name }}
+                  </div>
                 </div>
-                <div style="font-size: 10px; color: gray;" *ngIf="!selectedOtherFile">
+
+                <div class="doc-meta" *ngIf="otherDocControl?.value">
+                  {{ (otherDocControl.value.size / 1024) | number:'1.2-2' }} KB
+                </div>
+                <div class="doc-meta" *ngIf="!selectedOtherFile">
                   0.00 KB
                 </div>
+
               </ng-template>
 
             </button>
 
             <ng-template #otherDialog>
-              <div class="kyc-dialog-wrapper">
 
-                <h2 mat-dialog-title class="dialog-title">Upload Other Document</h2>
-
-                <mat-divider></mat-divider>
-
-                <mat-dialog-content class="dialog-content">
-
-                  <mat-form-field appearance="outline" class="kyc-form-field">
-                    <mat-label>Document Type</mat-label>
-                    <mat-select formControlName="otherDocType">
-                      <mat-option *ngFor="let type of documentTypes" [value]="type">{{ type }}</mat-option>
-                    </mat-select>
-                  </mat-form-field>
-
-                  <div 
-                    class="kyc-drop-zone"
-                    [class.drag-over]="isOtherDragOver"
-                    (dragover)="onOtherDragOver($event)" 
-                    (dragleave)="onOtherDragLeave($event)" 
-                    (drop)="onOtherDrop($event)">
-
-                    <p>Please ensure both sides of the document are uploaded.</p>
-                    <p class="upload-txt">Drag & drop PDF here or 
-                      <button type="button" (click)="otherInput.click()" class="browse-btn">
-                        browse
-                      </button>
-                    </p>
-
-                    <input 
-                      type="file" 
-                      #otherInput 
-                      id="otherInput" 
-                      accept="application/pdf" 
-                      (change)="onOtherFileSelected($event)" 
-                      hidden/>
-
-                  </div>
-                  
-                  <div *ngIf="selectedOtherFile" class="kyc-file-container">
-
-                    <mat-icon class="file-icon">picture_as_pdf</mat-icon>
-                    <span class="file-name">
-                      {{ selectedOtherFile.name }} ({{ (selectedOtherFile.size / 1024).toFixed(2) }} KB)
-                    </span>
-                    <button mat-icon-button type="button" (click)="deleteOtherFile()" aria-label="Delete Other file" class="delete-btn">
-                    <mat-icon color="warn">delete</mat-icon>
-                  </button>
-                  </div>
-
-                </mat-dialog-content>
-
-                <mat-dialog-actions class="dialog-actions">
-                  <button mat-button (click)="cancelOtherFile()">Cancel</button>
-                  <button mat-raised-button color="primary" (click)="saveOtherFile()">Save</button>
-                </mat-dialog-actions>
-              </div>
-
+              <app-file-upload-dialog
+                [title]="'Upload Other Documents'"
+                [formGroup]="secondFormGroup"
+                [controlName]="'otherDocument'"
+                [controlNameType]="'otherDocType'"
+                [documentTypes]="documentTypes"
+                (save)="saveOtherFileEmit()"
+                (close)="closeOtherDialogRef()">
+              </app-file-upload-dialog>
               
             </ng-template>
 
             <div class="step-2-buttons">
-                <button *ngIf="mode === 'add'" mat-button color="primary" (click)="selectedIndex = 0; stepper.selectedIndex=0">Previous</button>
-                <button *ngIf="mode === 'add'" mat-raised-button color="primary" (click)="selectedIndex = 2; stepper.selectedIndex=2">Next</button>
+                <button mat-raised-button *ngIf="mode === 'add'" mat-button (click)="selectedIndex = 0; stepper.selectedIndex=0">
+                  Previous
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <button *ngIf="mode === 'add'" mat-raised-button (click)="selectedIndex = 2; stepper.selectedIndex=2">
+                  Next
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
                 <button *ngIf="mode === 'edit'" mat-raised-button color="primary" type="button" (click)="logging()">submit</button>
             </div>
           </div>
@@ -456,8 +322,12 @@
         <div class="header">
 
           <div class="avatar-section">
-            <div class="avatar" *ngIf="!firstFormGroup.get('photo')?.value">{{ getInitials(firstFormGroup.get("fullName")?.value || '') }}</div>
+
+            <img class="avatar" 
+                *ngIf="!firstFormGroup.get('photo')?.value" 
+                [src]="'https://ui-avatars.com/api/?name=' + getInitials(firstFormGroup.get('fullName')?.value || '') + '&background=random&color=fff&rounded=true&length=2'">
             <img class="avatar-pic" *ngIf="firstFormGroup.get('photo')?.value" [src]="getPhotoUrl(firstFormGroup.get('photo')?.value)">
+
             <div class="name-role">
               <h2>{{ firstFormGroup.get("fullName")?.value }}</h2>
               <p>{{ firstFormGroup.get("services")?.value }}</p>
@@ -479,8 +349,7 @@
               target="_blank"
               style="display: flex; align-items: center; text-decoration: none;">
               <mat-icon>visibility</mat-icon>
-              View
-            </a>
+              View</a>
             </div>
           </div>
         </div>
@@ -493,13 +362,14 @@
           </div>
         </div>
 
-        <div style="margin-top: 390px; display: flex; gap: 25px; justify-content: flex-end;">
-          <button mat-raised-button (click)="selectedIndex = 1; stepper.selectedIndex = 1">Back</button>
+        <div class="step-3-buttons">
+          <button mat-raised-button (click)="selectedIndex = 1; stepper.selectedIndex = 1">
+            <mat-icon>chevron_left</mat-icon>
+            Back
+          </button>
           <button mat-raised-button color="primary" type="button" (click)="logging()"><mat-icon>add</mat-icon>Add Helper</button>
         </div>
       </div>
-
-      
 
     </div>
   </div>

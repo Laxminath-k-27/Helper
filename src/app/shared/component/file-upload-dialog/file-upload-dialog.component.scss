@@ -1,0 +1,77 @@
+.file-dialog-wrapper {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+.dialog-title {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    border: none;
+    background-color: white;
+
+    &:hover {
+      mat-icon{
+        background-color: #e0e0e0;
+      }
+      
+    }
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.doc-field {
+    width: 100%;
+}
+
+.browse-btn {
+  color: blue;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.file-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.drop-zone {
+  border: 2px dashed #c4c4c4;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  text-align: center;
+  padding: 24px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.drop-zone.drag-over {
+  border-color: #3f51b5;
+  background-color: #f0f4ff;
+}

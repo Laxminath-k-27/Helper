@@ -3,26 +3,24 @@
   <div class="sub-container" *ngIf="!isOtherRoute()">
 
     <mat-toolbar>
-      <span style="font-weight: 600; font-size: 1.5rem; font-family:Verdana, Geneva, Tahoma, sans-serif ">
+      <span class="heading-span">
         Helpers
       </span>
     </mat-toolbar>
 
-    <mat-card class="controls-bar" id="1">
-      <div id="control-grid2" class="controls-grid">
+    <mat-card class="controls-bar">
+      <div class="controls-grid">
 
         <button mat-raised-button [matMenuTriggerFor]="sortMenu">
-          <mat-icon>arrow_upward</mat-icon>
-          <mat-icon>arrow_downward</mat-icon>
+          <mat-icon>swap_vert</mat-icon>
         </button>
 
-
-        <mat-menu #sortMenu="matMenu" panelClass="sort-menu-panel">
-          <div class="sort-header" style="margin-left: 10px;">Sort by</div>
+        <mat-menu #sortMenu="matMenu" panelClass="sort-menu-panel" [hasBackdrop]="true">
+          <div class="sort-header">Sort by</div>
           <button mat-menu-item 
                   class="sort-option" 
                   [class.selected]="currentSortBy === 'fullName'"
-                  (click)="sortHelpers('fullName'); $event.stopPropagation()">
+                  (click)="sortHelpers('fullName', $event);">
             <span>Helpers Name(A-Z)</span>
             <mat-icon *ngIf="currentSortBy === 'fullName'" class="check-icon">check</mat-icon>
           </button>
@@ -30,103 +28,67 @@
           <button mat-menu-item 
                   class="sort-option" 
                   [class.selected]="currentSortBy === 'employeeId'"
-                  (click)="sortHelpers('employeeId'); $event.stopPropagation()">
+                  (click)="sortHelpers('employeeId', $event);"
+                  apperance="outline">
             <span>Employee ID</span>
             <mat-icon *ngIf="currentSortBy === 'employeeId'" class="check-icon">check</mat-icon>
           </button>
         </mat-menu>
 
-        <button style="width: 3px;" mat-raised-button [matMenuTriggerFor]="filterMenu" #menuTrigger="matMenuTrigger">
+        <button  mat-raised-button [matMenuTriggerFor]="filterMenu" #menuTrigger="matMenuTrigger">
           <mat-icon>filter_alt</mat-icon>
         </button>
 
-        <mat-menu #filterMenu [hasBackdrop]="true">
-          <div (click)="$event.stopPropagation()"> 
+        <mat-menu #filterMenu="matMenu" panelClass="filter-menu-panel" [hasBackdrop]="true">
+          
+          <div class="filter-inner-div" (click)="$event.stopPropagation()"> 
 
-            <div style="padding: 16px; font-weight: 500;">Filter By</div>
+            <div class="sort-header">Filter By</div>
 
             <div class="filter-section">
-              <button *ngIf="serviceFilter.value?.length" 
+
+              <button
+                *ngIf="serviceFilter.value?.length" 
                 class="filter-reset"
-                mat-icon-button 
-                color="warn" 
                 (click)="serviceFilter.setValue([])">
                 Reset
               </button>
-              <mat-form-field appearance="outline" style="width: 200px; margin:0 20px;">
-                  <mat-label>Services</mat-label>
-                  
-                  <mat-select [formControl]="serviceFilter" multiple (selectionChange)="filterHelpersByServiceChange($event)">
-                      <mat-select-trigger>
-                          {{serviceFilter.value?.[0] || ''}}
-                          @if ((serviceFilter.value?.length || 0) > 1) {
-                              <span class="example-additional-selection">
-                              (+{{(serviceFilter.value?.length || 0) - 1}})
-                              </span>
-                          }
-                      </mat-select-trigger>
-                      
-                      <mat-checkbox [checked]="areAllServicesSelected()" [indeterminate]="areServicesIndeterminate()" (change)="toggleSelectAllServices($event)">
-                          Select All
-                      </mat-checkbox>
-                      
-                      <mat-option *ngFor="let topping of servicesList" [value]="topping">
-                          {{ topping }}
-                      </mat-option>
-                  </mat-select>
-              </mat-form-field>
+
+              <app-multi-select-with-select-all
+                label="Services"
+                [items]="servicesList"
+                [control]="serviceFilter">
+              </app-multi-select-with-select-all>
             </div>
             
             <div class="filter-section">
+
               <button *ngIf="organizationFilter.value?.length" 
                 class="filter-reset"
-                mat-icon-button 
-                color="warn" 
                 (click)="organizationFilter.setValue([])">
                 Reset
               </button>
-              <mat-form-field appearance="outline" style="width: 200px; margin: 0 20px;">
-                <mat-label>Organizations</mat-label>
-                <mat-select [formControl]="organizationFilter" multiple (selectionChange)="filterHelpersByOrganizationChange($event)">
-            
-                    <mat-select-trigger>
-                        {{organizationFilter.value?.[0] || ''}}
-                        @if ((organizationFilter.value?.length || 0) > 1) {
-                            <span class="example-additional-selection">
-                            (+{{(organizationFilter.value?.length || 0) - 1}})
-                            </span>
-                        }
-                    </mat-select-trigger>
 
-                    <mat-checkbox
-                      [checked]="areAllOrganizationsSelected()"
-                      [indeterminate]="areOrganizationsIndeterminate()"
-                      (change)="toggleSelectAllOrganizations($event)">
-                      Select All
-                    </mat-checkbox>
-
-                  <mat-option *ngFor="let organization of organizationsList" [value]="organization">
-                    {{ organization }}
-                  </mat-option>
-
-                </mat-select>
-              </mat-form-field>
+              <app-multi-select-with-select-all
+                label="Organizations"
+                [items]="organizationsList"
+                [control]="organizationFilter">
+              </app-multi-select-with-select-all>
             </div>
 
             
-            <div style="display: flex; justify-content: space-between; padding: 8px 16px;">
+            <div class="filter-footer">
               <button mat-stroked-button color="primary" (click)="resetFilters()">reset</button>
               <button mat-flat-button color="primary" (click)="applySearchAndFilters(); menuTrigger.closeMenu()">Apply</button>
             </div>
           </div>
         </mat-menu>
 
-        <button mat-raised-button class="search-div" style="background-color: white !important; border: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; height: 33px;">
+        <button mat-raised-button class="search-div">
           <mat-icon>search</mat-icon>
-          <input class="input-no-hover" placeholder="Name, EmployeeId, Phone" 
+          <input matInput class="input-no-hover" placeholder="Name, EmployeeId, Phone" 
                   [(ngModel)]="searchQuery" 
-                  (ngModelChange)="applySearchAndFilters()"
-                  style="border: none; width: 200px;">
+                  (ngModelChange)="applySearchAndFilters()">
         </button>
 
         <div >
@@ -134,16 +96,14 @@
           <p >{{totalHelperCount}}</p>
           <p>helpers</p>
         </div>
-        
-        <!-- <button mat-raised-button color="primary" [routerLink]="['/add-helper']">
-          Add Helper original
-        </button> -->
 
       </div>
 
       <div class="add-helper-div">
         <mat-icon>download</mat-icon> 
-        <button mat-raised-button color="primary" [routerLink]="['/add-edit-helper']" [queryParams]="{ mode: 'add' }">
+        <button mat-raised-button color="primary" [routerLink]="['/add-edit-helper']" [queryParams]="{ mode: 'add' }"
+                (click)="clicked()" [disabled]="isDisable">
+          <mat-icon>add</mat-icon>
           Add Helper
         </button>
       </div>
@@ -154,13 +114,12 @@
         
         <div *ngFor="let helper of helpers" 
             class="helper-card"
-            [class.active]="selectedHelper?.employeeId === helper.employeeId"
-            (click)="onClick(helper.employeeId)">
+            [class.active]=" selectedHelper?.employeeId === helper.employeeId "
+            (click)="onClick( helper.employeeId )">
 
           <div class="helper-div-1">
 
-            <img class="helper-pic" *ngIf="helper.photo" [src]="getPhotoUrl(helper.photo)">
-            <!-- <div class="helper-pic" *ngIf="!helper.photo">{{ getInitials(helper.fullName) }}</div> -->
+            <img class="helper-pic" *ngIf="helper.photo" [src]=" getUrl(helper.photo) ">
             <img class="helper-pic" *ngIf="!helper.photo" [src]="'https://ui-avatars.com/api/?name=' + getInitials(helper.fullName) + '&background=random&color=fff&rounded=true&length=2'">
 
           </div>
@@ -173,7 +132,6 @@
         </div>
       </div>
 
-
       <div class="content">
 
         <div class="helper-detail-card" *ngIf="selectedHelper">
@@ -181,11 +139,10 @@
           <div class="header">
 
             <div class="avatar-section">
-              <!-- <div class="avatar" *ngIf="!selectedHelper.photo">{{ getInitials(selectedHelper.fullName) }}</div> -->
               <img class="avatar" 
                 *ngIf="!selectedHelper.photo" 
                 [src]="'https://ui-avatars.com/api/?name=' + getInitials(selectedHelper.fullName) + '&background=random&color=fff&rounded=true&length=2'">
-              <img class="avatar-pic" *ngIf="selectedHelper.photo" [src]="getPhotoUrl(selectedHelper.photo)">
+              <img class="avatar-pic" *ngIf="selectedHelper.photo" [src]="getUrl(selectedHelper.photo)">
               
               <div class="name-role">
                 <h2>{{ selectedHelper.fullName }}</h2>
@@ -202,7 +159,6 @@
                     edit
                   </mat-icon>
               </button>
-              <!-- <button mat-icon-button [routerLink]="['/edit-helper',selectedHelper.employeeId]" (click)="clicked()"><mat-icon>edit</mat-icon></button> -->
               <button mat-icon-button 
                 (click)="deleteHelper(selectedHelper.employeeId)">
                   <mat-icon>
@@ -219,10 +175,10 @@
             <div class="detail-grid">
               <div>Identification Card</div>
               <div><a 
-                [href]="getFileUrl(selectedHelper.kycDocument)" 
-                target="_blank"
-                style="display: flex; align-items: center; text-decoration: none;"><mat-icon >visibility</mat-icon>View</a></div>
-
+                [href]="getUrl(selectedHelper.kycDocument)" 
+                target="_blank">
+                <mat-icon >visibility</mat-icon>
+                View</a></div>
               <div>Employee Code</div>
               <div>{{ selectedHelper.employeeId }}</div>
             </div>
@@ -237,9 +193,8 @@
               <div>Email ID</div><div>{{ selectedHelper.email || '-' }}</div>
               <div>KYC Document</div>
               <div><a 
-                [href]="getFileUrl(selectedHelper.kycDocument)" 
-                target="_blank"
-                style="display: flex; align-items: center; text-decoration: none;">
+                [href]="getUrl(selectedHelper.kycDocument)" 
+                target="_blank">
                 <mat-icon>visibility</mat-icon>
                 View</a></div>
             </div>
@@ -253,23 +208,14 @@
               <div>Joined On</div><div>{{ formatDate(selectedHelper.joinedDate) }}</div>
             </div>
           </div>
+
         </div>
 
       </div>
     </div>
   </div>
-  
-
-  <!-- <div *ngIf="isOtherRoute()" class="form-container" >
-    <button [routerLink]="['../']">Go to Home</button>
-    <router-outlet></router-outlet>
-  </div> -->
 
   <div *ngIf="isOtherRoute()" class="form-container">
-
-    <!-- <div class="form-header">
-      <button mat-raised-button [routerLink]="['../']"><mat-icon>arrow_back</mat-icon></button>
-    </div> -->
 
     <div class="form-body">
       <div class="routed-wrapper">

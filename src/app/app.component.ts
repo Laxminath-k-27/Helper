@@ -11,13 +11,16 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule} from '@angular/material/menu'
+import { MatMenu, MatMenuModule} from '@angular/material/menu'
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DeleteSuccessDialogComponent } from './delete-success-dialog/delete-success-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { NotificationService } from './services/notification.service';
+import { MultiSelectWithSelectAllComponent } from './shared/component/multi-select-with-select-all/multi-select-with-select-all.component';
+import { MatMenuItem } from '@angular/material/menu';
 
 @Component({
     selector: 'app-root',
@@ -40,8 +43,10 @@ import { MatDialog } from '@angular/material/dialog';
       MatCheckboxModule,
       MatFormFieldModule,
       MatOptionModule,
+      MatMenuItem,
       MatSnackBarModule,
-      DeleteSuccessDialogComponent
+      DeleteSuccessDialogComponent,
+      MultiSelectWithSelectAllComponent
     ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
@@ -57,10 +62,9 @@ export class AppComponent implements OnInit{
     gotTotalHelpers: boolean = false;
     helperCount: number = 0;
     showCount: boolean = false;
+    isDisable = false;
 
-    sortBy = new FormControl();
     currentSortBy: string = 'employeeId';
-    filterBy = new FormControl();
 
     organizationsList: string[] = ['ASBL', 'Spring Helpers'];
     servicesList: string[] = ['Maid','Cook','Driver','Electrician','Plumber','Gardener','Painter','Carpenter','Mechanic'];
@@ -71,26 +75,25 @@ export class AppComponent implements OnInit{
     constructor(public router: Router,
                 private listService: ListServiceService,
                 private snackBar: MatSnackBar,
-                private dialog: MatDialog ){}
+                private dialog: MatDialog,
+                private notification: NotificationService ){}
 
 
     ngOnInit(){
 
-      // this.getTotalHelperCount()
-
       this.fetchHelpers();
-      // this.checkToast(window.history.state);
 
-      // this event runs regardless of ngOnInit
       this.router.events    // observable stream
-      .pipe(    // to apply operators to the stream
-        filter(event => event instanceof NavigationEnd)   // normal filter for checking whether event is the NavigationEnd instance
+      .pipe(   
+        filter(event => event instanceof NavigationEnd)
       ).subscribe(() => {
         if (!this.isOtherRoute()) {
+          this.isDisable = false;
+          console.log('enabled');
+
           this.resetAllFilters();
 
           this.fetchHelpers();
-          // this.onClick(this.helpers[0].employedId)
         }
 
         this.checkToast(window.history.state);
@@ -99,7 +102,6 @@ export class AppComponent implements OnInit{
     }
 
     isOtherRoute(){
-      // return this.router.url.includes('/add-helper') || this.router.url.includes('/edit-helper');
       return this.router.url !== '/'
     }
 
@@ -116,21 +118,12 @@ export class AppComponent implements OnInit{
       this.resetFilters();
     }
 
-
     checkToast(state: any) {
       if (state.showToast) {
-        this.showSuccessToast('Helper updated successfully!');
+        this.notification.show('Helper updated successfully!!!!!');
 
         window.history.replaceState({}, '', this.router.url);
       }
-    }
-
-    showSuccessToast(message: string) {
-      this.snackBar.open(message, 'Close', {
-        duration: 3000,
-        verticalPosition: 'bottom',
-        horizontalPosition: 'right'
-      });
     }
 
     getTotalHelperCount(){
@@ -153,47 +146,6 @@ export class AppComponent implements OnInit{
       });
     }
 
-    fetchBySearch(){
-      if(this.searchQuery){
-        this.listService.getHelpersBySearch(this.searchQuery).subscribe(data => {
-          this.helpers = data;
-
-          console.log("setch "+this.helpers[0])
-          if(this.helpers.length > 0){
-            this.onClick(this.helpers[0].employeeId);
-          }else{
-            this.noHelpers();
-          }
-
-        })
-        this.showCount = true;
-      }else{
-        this.resetAllFilters();
-        this.fetchHelpers()
-        this.showCount = false;
-      }
-    }
-
-    applyFilter() {
-      this.searchQuery = '';
-
-      const ser = this.serviceFilter.value || [];
-      const org = this.organizationFilter.value || [];
-
-      this.listService.getHelpersByFilter(ser, org).subscribe(data => {
-        this.helpers = data;
-
-        if (this.helpers.length > 0) {
-          console.log(this.helpers);
-          this.onClick(this.helpers[0].employeeId);
-        } else {
-          this.noHelpers();
-        }
-        if(ser.length > 0 || org.length > 0) this.showCount = true;
-        else this.showCount = false;
-      });
-    }
-
     applySearchAndFilters(){
       
       const ser = this.serviceFilter.value || [];
@@ -209,10 +161,12 @@ export class AppComponent implements OnInit{
               this.helpers = data;
 
               if(this.helpers.length > 0){
+                this.helperCount = this.helpers.length;
                 this.onClick( this.helpers[0].employeeId );
               }else{
                 this.noHelpers();
               }
+
             }
           )
         } catch (error) {
@@ -231,7 +185,6 @@ export class AppComponent implements OnInit{
         this.listService.getHelperById(employedId).subscribe(data => {
           this.selectedHelper = data.data[0]
           console.log("from onClick "+this.selectedHelper.employeeId)
-          this.helperCount = this.helpers.length
         })
       }
     }
@@ -241,95 +194,23 @@ export class AppComponent implements OnInit{
       this.helperCount = 0;
     }
 
-    sortHelpers(criterion: 'fullName' | 'employeeId' ) {
+    sortHelpers(criterion: 'fullName' | 'employeeId', event: Event ) {
+      event.stopPropagation()
+
       this.currentSortBy = criterion;
 
       this.applySearchAndFilters();
-
-      // if (criterion === 'name') { 
-
-      //   this.helpers.sort((a, b) =>
-      //     a.fullName.toLowerCase().localeCompare(b.fullName.toLowerCase())
-      //   );
-      //   this.onClick(this.helpers[0].employeeId);
-
-      // } else if (criterion === 'employeeId') {
-
-      //   this.helpers.sort((a, b) =>{
-      //     const idA = parseInt(a.employeeId.replace(/\D/g, ''));
-      //     const idB = parseInt(b.employeeId.replace(/\D/g, ''));
-      //     // console.log(idA, idB)
-      //     return idA - idB;
-      //   })
-      //   console.log(this.helpers)
-      //   console.log(this.helpers[0].employeeId)
-      //   this.onClick(this.helpers[0].employeeId);
-
-      // }
     }
-
-    areAllServicesSelected(): boolean {
-      const selected = this.serviceFilter?.value || [];
-      return this.servicesList.every(service => selected.includes(service));
-    }
-
-    areServicesIndeterminate(): boolean {
-      const selected = this.serviceFilter?.value || [];
-      return selected.length > 0 && !this.areAllServicesSelected();
-    }
-
-    toggleSelectAllServices(event: any): void {
-      if (event.checked) {
-        console.log("selecting all services")
-        this.serviceFilter.setValue( [...this.servicesList] );
-      } else {
-        this.serviceFilter.setValue( [] );
-      }
-      console.log(this.serviceFilter)
-    }
-
-    filterHelpersByServiceChange(event: MatSelectChange) {
-      this.serviceFilter.setValue( event.value );
-    }
-
-    filterHelpersByOrganizationChange(event: MatSelectChange){
-      this.organizationFilter.setValue(event.value || []);
-    }
-
-    areAllOrganizationsSelected(): boolean {
-      return this.organizationsList.every(lang => 
-        this.organizationFilter.value && this.organizationFilter.value.includes(lang));
-    }
-
-    areOrganizationsIndeterminate(): boolean {
-      const selected = this.organizationFilter.value || [];
-      return selected.length > 0 && !this.areAllOrganizationsSelected();
-    }
-
-    toggleSelectAllOrganizations(event: any): void {
-      if (event.checked) {
-        this.organizationFilter.setValue([...this.organizationsList]);
-      } else {
-        this.organizationFilter.setValue([]);
-      }
-    }
-
 
     getInitials(name: string): string {
       const parts = name.split(' ');
       const ret = parts.map(p => p[0]).join('').toUpperCase();
-      console.log(ret);
       return ret;
     }
 
-    getFileUrl(path: string): string {
+    getUrl(path: string): string {
       return 'http://localhost:3000/' + path;
     }
-
-    getPhotoUrl(path: string): string{
-      return 'http://localhost:3000/' + path;
-    }
-
     formatDate(dateStr: string): string {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-GB', {
@@ -358,15 +239,16 @@ export class AppComponent implements OnInit{
               this.selectedHelper = null;
               this.fetchHelpers();
 
-              this.showSuccessToast(`${delhelper} deleted successfully!`);
+              this.notification.show(`${delhelper} deleted successfully!`);
             }
           });
         }
       })
-    }
 
+    }
+    
     clicked(){
-      console.log("clicked")
+      this.isDisable = true;
+      console.log("disabled");
     }
-
 }

@@ -4,7 +4,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router, ActivatedRoute , RouterLink} from '@angular/router';
 import { FormsModule, ReactiveFormsModule, Validators, FormBuilder, FormControl } from '@angular/forms';
 
-
 import { MatOption, MatPseudoCheckbox } from '@angular/material/core';
 import { MatStepperModule,MatStepper } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip'
 
 import { STEPPER_GLOBAL_OPTIONS, StepperSelectionEvent } from '@angular/cdk/stepper';
 
@@ -25,10 +25,12 @@ import { startWith } from 'rxjs';
 
 import { TickDialogComponent } from '../tick-dialog/tick-dialog.component';
 import { QrDialogComponent } from '../qr-dialog/qr-dialog.component';
+import { FileUploadDialogComponent } from '../shared/component/file-upload-dialog/file-upload-dialog.component';
 
 import { ListServiceService } from '../services/list-service.service';
 import { FileUtilsService } from '../services/file-utils.service';
-
+import { NotificationService } from '../services/notification.service';
+import { MultiSelectWithSelectAllComponent } from '../shared/component/multi-select-with-select-all/multi-select-with-select-all.component';
 
 
 @Component({
@@ -56,11 +58,14 @@ import { FileUtilsService } from '../services/file-utils.service';
     MatSnackBarModule,
     MatOption,
     MatPseudoCheckbox,
+    MatTooltipModule,
 
     QRCodeModule,
 
     TickDialogComponent,
     QrDialogComponent,
+    FileUploadDialogComponent,
+    MultiSelectWithSelectAllComponent
   ],
   templateUrl: './add-edit-helper.component.html',
   styleUrl: './add-edit-helper.component.scss'
@@ -74,31 +79,25 @@ export class AddEditHelperComponent implements OnInit{
   vehicleTypes: string[] = ['none', 'Bike', 'Car', 'Auto'];
   documentTypes = ['Aadhar', 'Voter ID', 'Passport', 'PAN Card'];
 
-
-  @ViewChild('stepper') stepper!: MatStepper; // a
-  @ViewChild('kycDialog') kycDialogTemplate!: any;  // a
+  @ViewChild('stepper') stepper!: MatStepper;
+  @ViewChild('kycDialog') kycDialogTemplate!: any;
 
   photoUrl: String | null = null;
   photoSizeError: boolean = false;
   photoTypeError: boolean = false;
 
-  helperData: any;  //d
+  helperData: any;
 
   kycDialogRef: MatDialogRef<any> | null = null;
-  selectedKycFile: File | null = null; // a
-
-  noKycInput: boolean = false;
-  // kycFile: File | null = null; // d
+  selectedKycFile: File | null = null;
 
   otherDialogRef: MatDialogRef<any> | null = null;
-  selectedOtherFile: File | null = null; // a
-  // otherFile: File | null = null; // d 
+  selectedOtherFile: File | null = null;
 
-  isDragOver: boolean = false; // a
-  isOtherDragOver: boolean = false; // a
+  isDragOver: boolean = false;
+  isOtherDragOver: boolean = false;
 
-  activeForm = 'form1'  // d
-  id: string = '';  // d
+  id: string = '';
 
   mode: string | null = null;
 
@@ -112,30 +111,36 @@ export class AddEditHelperComponent implements OnInit{
               private route: ActivatedRoute,
               private listService: ListServiceService,
               public fb: FormBuilder,
-              private fileutils: FileUtilsService) {}
+              private fileutils: FileUtilsService,
+              private notification: NotificationService) {}
 
   ngOnInit(): void {
 
     this.route.queryParamMap.subscribe(params => {
-      this.mode = params.get('mode'); // "add"
+      this.mode = params.get('mode');
       console.log('Mode:', this.mode);
     });
 
-    // a
-    this.firstFormGroup.get('vehicleType')?.valueChanges.subscribe((value) => {
-      const vehicleNumberControl = this.firstFormGroup.get('vehicleNumber');
+    const vehicleTypeControl = this.firstFormGroup.get('vehicleType');
+    const vehicleNumberControl = this.firstFormGroup.get('vehicleNumber');
 
-      if (value === 'none') {
+    vehicleTypeControl?.valueChanges
+    .pipe(
+      startWith(vehicleTypeControl.value)
+    ).subscribe(
+      value => 
+    {
+        
+      if (value && value !== 'none') {
+        vehicleNumberControl?.setValidators([Validators.required]);
+      } else {
         vehicleNumberControl?.clearValidators();
         vehicleNumberControl?.setValue('');
-      } else {
-        vehicleNumberControl?.setValidators([Validators.required]);
       }
-
+      
       vehicleNumberControl?.updateValueAndValidity();
     });
 
-    // d
     this.id = this.route.snapshot.paramMap.get('id') || '';
 
     console.log(this.id)
@@ -150,8 +155,6 @@ export class AddEditHelperComponent implements OnInit{
         this.createForm(this.helperData)
       })
     }
-    
-
   }
 
   firstFormGroup = this._formBuilder.group({
@@ -178,9 +181,77 @@ export class AddEditHelperComponent implements OnInit{
   }]
   });
 
+  createForm(helper: any){
+
+    this.firstFormGroup.patchValue({
+      fullName: helper.fullName,
+      email: helper.email,
+      services: helper.services,
+      organization: helper.organization,
+      languages: helper.languages,
+      gender: helper.gender,
+      phonePrefix: helper.phonePrefix,
+      phoneNumber: helper.phoneNumber,
+      vehicleType: helper.vehicleType,
+      vehicleNumber: helper.vehicleNumber,
+      photo: helper.photo || null, 
+      kycDocument: helper.kycDocument || null,
+      kycDocType: helper.kycDocType
+    });
+
+    this.secondFormGroup.patchValue({
+      otherDocument: helper.otherDocument || null,
+      otherDocType: helper.otherDocType
+    });
+
+    console.log(this.firstFormGroup);
+
+    this.loadHelperData(helper);
+  }
+
+  loadHelperData(helper: any): void {
+    const BASE_URL = 'http://localhost:3000/';
+
+    const makeFullUrl = (path: string): string => {
+      return path.startsWith('http') ? path : `${BASE_URL}${path}`;
+    };
+
+    console.log('KYC Path from backend:', helper.kycDocument);
+
+    if (helper.kycDocument) {
+      const kycUrl = makeFullUrl(helper.kycDocument);
+      this.fileutils.loadFileAsFile(kycUrl).subscribe(file => {
+        this.selectedKycFile = file;
+        this.kycDocumentControl.setValue(file);
+        console.log('KYC File loaded:', this.selectedKycFile);
+      });
+    }
+
+    if (helper.otherDocument) {
+      const otherUrl = makeFullUrl(helper.otherDocument);
+      this.fileutils.loadFileAsFile(otherUrl).subscribe(file => {
+        this.selectedOtherFile = file;
+        this.secondFormGroup.get('otherDocument')?.setValue(file);
+        console.log('Other File loaded:', this.selectedOtherFile);
+      });
+    }
+
+    if (helper.photo) {
+      const PhotoUrl = makeFullUrl(helper.photo);
+      this.fileutils.loadPhotoAsBase64(PhotoUrl).subscribe(base64 => {
+        this.photoUrl = base64;
+        console.log('Photo (Base64) loaded');
+      });
+    }
+  }
+
   details() {
     this.selectedIndex = 0;
     console.log('Details form selected');
+  }
+
+  get languageControl(): FormControl<string[] | null> {
+    return this.firstFormGroup.get('languages')! as FormControl<string[] | null>;
   }
 
   otherDetails() {
@@ -188,33 +259,9 @@ export class AddEditHelperComponent implements OnInit{
     console.log('Other details form selected');
   }
 
-  areAllLanguagesSelected(): boolean {
-    const selected = this.firstFormGroup.get('languages')?.value || [];
-    return this.languagesList.every(lang => selected.includes(lang));
-  }
-
-  areLanguagesIndeterminate(): boolean {
-    const selected = this.firstFormGroup.get('languages')?.value || [];
-    return selected.length > 0 && !this.areAllLanguagesSelected();
-  }
-
-  toggleSelectAllLanguages(event: any): void {
-    if (event.checked) {
-      this.firstFormGroup.patchValue({ languages: [...this.languagesList] });
-    } else {
-      this.firstFormGroup.patchValue({ languages: [] });
-    }
-  }
-
-  onLanguageSelectionChange(event: MatSelectChange): void {
-    const selected: string[] = event.value;
-    this.firstFormGroup.patchValue({ languages: selected });
-  }
-
   triggerFileInput(fileInput: HTMLInputElement) {
     fileInput.click();
   }
-
 
   onFileSelected(event: Event){
     const input = event.target as HTMLInputElement;
@@ -264,81 +311,21 @@ export class AddEditHelperComponent implements OnInit{
     });
   }
 
-  onKycFileSelected(event: Event): void {
-    const tempfile = (event.target as HTMLInputElement).files?.[0];
-    if (tempfile && tempfile.type === 'application/pdf') {
-      this.selectedKycFile = tempfile;
-      this.firstFormGroup.get('kycDocument')?.setValue(tempfile);
-      this.noKycInput = false;
-    }
-  }
-
-  
-
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    this.isDragOver = true;
-  }
-
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isDragOver = false;
-  }
-
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragOver = false;
-
-    if (event.dataTransfer?.files.length) {
-      const file = event.dataTransfer.files[0];
-      if (file.type === "application/pdf") {
-        this.selectedKycFile = file;
-        this.firstFormGroup.patchValue({ kycDocument: file });
-        this.firstFormGroup.get("kycDocument")?.markAsDirty();
-      } else {
-        this.showErrorToast("Only PDF files are allowed.");
-      }
-    }
-  }
-
-  showErrorToast(message: string) {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      verticalPosition: 'bottom',
-      horizontalPosition: 'right'
-    });
-  }
-
-  saveKycFile(){
-    this.firstFormGroup.get('kycDocType')?.markAsTouched()
-    if (this.firstFormGroup.get('kycDocType')?.value && this.selectedKycFile) {
-      this.kycDialogRef?.close();
-    }else{
-      this.noKycInput = true;
-    }
-  }
-
-  closeKycDialog(){
+  closeKycDialogRef(){
     this.kycDialogRef?.close();
   }
 
-  cancelKycFile(): void {
-    this.selectedKycFile = null;
-    this.firstFormGroup.patchValue({
-      kycDocument: null,
-      kycDocType: ''
-    });
-    this.kycDialogRef?.close();
+  saveKycFileEmit(){
+    this.selectedKycFile = this.kycDocumentControl.value;
   }
 
-  deleteKycFile() {
-    this.selectedKycFile = null;
-    this.firstFormGroup.patchValue({ kycDocument: null });
+  isKycDocInvalid(): boolean {
+    const kycDocumentInvalid =
+      this.kycDocumentControl?.invalid &&
+      (this.kycDocumentControl?.touched ||
+       this.kycDocumentControl?.dirty )
 
-    const kycInput = document.getElementById('kycInput') as HTMLInputElement;
-    if (kycInput) {
-      kycInput.value = '';
-    }
+    return !!kycDocumentInvalid;
   }
 
   isKycInvalid(): boolean {
@@ -346,15 +333,15 @@ export class AddEditHelperComponent implements OnInit{
       this.firstFormGroup.get('kycDocType')?.invalid &&
       this.firstFormGroup.get('kycDocType')?.touched;
 
-    const kycDocumentInvalid =
-      this.firstFormGroup.get('kycDocument')?.invalid &&
-      this.firstFormGroup.get('kycDocument')?.touched;
-
-    return !!kycDocTypeInvalid || !!kycDocumentInvalid;
+    return !!kycDocTypeInvalid || this.isKycDocInvalid();
   } 
 
   get kycDocumentControl(): FormControl {
     return this.firstFormGroup.get('kycDocument') as FormControl;
+  }
+
+  get otherDocControl(): FormControl {
+    return this.secondFormGroup.get('otherDocument') as FormControl;
   }
 
   openOtherUploadModal(templateRef: any): void {
@@ -369,72 +356,31 @@ export class AddEditHelperComponent implements OnInit{
     });
   }
 
-  onOtherDragOver(event: DragEvent) {
-    event.preventDefault();
-    this.isOtherDragOver = true;
+  saveOtherFileEmit(){
+    this.selectedOtherFile = this.secondFormGroup.get('otherDocument')?.value || null;
   }
 
-  onOtherDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isOtherDragOver = false;
-  }
-
-  onOtherDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isOtherDragOver = false;
-
-    if (event.dataTransfer?.files.length) {
-      const file = event.dataTransfer.files[0];
-      if (file.type === "application/pdf") {
-        this.selectedOtherFile = file;
-        this.secondFormGroup.patchValue({ otherDocument: file });
-        this.secondFormGroup.get("otherDocument")?.markAsDirty();
-      } else {
-        this.showErrorToast("Only PDF files are allowed.");
-      }
-    }
-  }
-
-  deleteOtherFile() {
-    this.selectedOtherFile = null;
-    this.secondFormGroup.patchValue({ otherDocument: null });
-
-    const otherInput = document.getElementById('otherInput') as HTMLInputElement;
-    if (otherInput) {
-      otherInput.value = '';
-    }
-  }
-
-  onOtherFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file && file.type === 'application/pdf') {
-      this.selectedOtherFile = file;
-      this.secondFormGroup.get('otherDocument')?.setValue(file);
-    }
-  }
-
-  saveOtherFile(): void {
-    if (this.secondFormGroup.get('otherDocType')?.value && this.selectedOtherFile) {
-      // this.otherFile = this.selectedOtherFile;
-      this.otherDialogRef?.close();
-    }
-  }
-
-  cancelOtherFile(): void {
-    this.selectedOtherFile = null;
-    this.secondFormGroup.patchValue({
-      otherDocument: null,
-      otherDocType: ''
-    });
-    console.log(this.secondFormGroup.value);
+  closeOtherDialogRef() {
     this.otherDialogRef?.close();
   }
 
-  get otherDocumentControl(): FormControl {
-    return this.secondFormGroup.get('otherDocument') as FormControl;
+  isOtherDocInvalid(): boolean {
+    const otherDocInvalid = 
+      this.otherDocControl?.invalid &&
+      (this.otherDocControl?.touched ||
+        this.otherDocControl?.dirty)
+
+    return !!otherDocInvalid;
   }
 
-  // for preventing navigation using stepper
+  isOtherInvalid(): boolean {
+    const otherDocTypeInvalid = 
+      this.otherDocControl?.invalid &&
+      this.otherDocControl?.touched;
+
+      return !!otherDocTypeInvalid || this.isOtherDocInvalid();
+  }
+
   onStepperSelectionChange(event: StepperSelectionEvent){
     if (event.previouslySelectedIndex !== event.selectedIndex) {
       this.stepper.selectedIndex = event.previouslySelectedIndex;
@@ -496,11 +442,7 @@ export class AddEditHelperComponent implements OnInit{
   }
 
 
-
-submitForm(): void {
-
-  if(this.mode === 'add'){
-
+  submitForm(): void {
 
     const formData = new FormData();
 
@@ -522,9 +464,9 @@ submitForm(): void {
     formData.append('kycDocType', firstControls['kycDocType'].value ?? '');
 
     const photoFile = firstControls['photo'].value;
-    const kycFile = firstControls['kycDocument'].value;
-
     if (photoFile) formData.append('photo', photoFile);
+
+    const kycFile = firstControls['kycDocument'].value;
     if (kycFile) formData.append('kycDocument', kycFile);
 
     const secondControls = this.secondFormGroup.controls;
@@ -533,261 +475,84 @@ submitForm(): void {
     const otherFile = secondControls['otherDocument'].value;
     if (otherFile) formData.append('otherDocument', otherFile);
 
+    
+    
+    if(this.mode === 'add'){
+      
+      this.http.post<any>('http://localhost:3000/api/helpers', formData).subscribe({
+        next: (res) => {
+          console.log('Saved!', res);
 
-    this.http.post<any>('http://localhost:3000/api/helpers', formData).subscribe({
-      next: (res) => {
-
-        console.log('Saved!', res);
-        console.log(res);
-
-        
-
-        const tickDialogRef = this.dialog.open(TickDialogComponent, {
-          width: '300px',
-          disableClose: true
-        });
-
-        setTimeout(() => {
-          tickDialogRef.close();
-
-          const qrDialogRef = this.dialog.open(QrDialogComponent, {
-            width: '820px',
-            height: '500px',
-            data: { 
-              employeeId: res.employeeId,
-              organization: res.organization,
-              phone: res.phoneNumber,
-              joinedDate: res.joinedDate,
-              fullName: res.fullName,
-              services: res.services
-           }
+          const tickDialogRef = this.dialog.open(TickDialogComponent, {
+            width: '300px',
+            disableClose: true
           });
 
-          qrDialogRef.afterClosed().subscribe(() => {
-            this.firstFormGroup.reset();
-            this.secondFormGroup.reset();
+          setTimeout(() => {
+            tickDialogRef.close();
 
-            this.selectedKycFile = null;
-            this.photoUrl = null;
-
-            const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
-            fileInputs.forEach((id) => {
-              const el = document.getElementById(id) as HTMLInputElement;
-              if (el) el.value = '';
+            const qrDialogRef = this.dialog.open(QrDialogComponent, {
+              width: '820px',
+              height: '550px',
+              data: { 
+                employeeId: res.employeeId,
+                organization: res.organization,
+                phone: res.phoneNumber,
+                joinedDate: res.joinedDate,
+                fullName: res.fullName,
+                services: res.services,
+                photo: this.photoUrl
+            }
             });
-            
-            this.stepper.reset();
 
-            this.router.navigate(['../']);
-          })
+            qrDialogRef.afterClosed().subscribe(() => {
+              this.firstFormGroup.reset();
+              this.secondFormGroup.reset();
 
-        }, 1500);
+              this.selectedKycFile = null;
+              this.photoUrl = null;
 
-        // this.router.navigate(['../']);
-      },
-      error: (err) => console.error('Failed to save', err)
-    });
+              const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
+              fileInputs.forEach((id) => {
+                const el = document.getElementById(id) as HTMLInputElement;
+                if (el) el.value = '';
+              });
+              
+              this.stepper.reset();
 
+              this.router.navigate(['../']);
+            })
 
+          }, 1500);
 
-  }else{
+        },
+        error: (err) => console.error('Failed to save', err)
+      });
 
+    }else{
 
-    const formData = new FormData();
+      this.http.patch(`http://localhost:3000/api/helpers/${this.id}`, formData).subscribe({
+        next: (res: any) => {
+          console.log('Updated!', res);
 
-    if(this.firstFormGroup.get('vehicleType')?.value === 'none'){
-      this.firstFormGroup.patchValue({ vehicleNumber: ' '})
+          this.firstFormGroup.reset();
+          this.secondFormGroup.reset();
+
+          this.selectedKycFile = null;
+          this.photoUrl = '';
+
+          const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
+          fileInputs.forEach((id) => {
+            const el = document.getElementById(id) as HTMLInputElement;
+            if (el) el.value = '';
+          });
+
+          this.router.navigate(['../'], { state: { showToast: true } });
+        },
+        error: (err: any) => console.error('Failed to update', err)
+      });
     }
-
-    const formControls = this.firstFormGroup.controls;
-    formData.append('fullName', formControls['fullName'].value ?? '');
-    formData.append('email', formControls['email'].value ?? '');
-    formData.append('services', formControls['services'].value ?? '');
-    formData.append('organization', formControls['organization'].value ?? '');
-    formData.append('languages', JSON.stringify(formControls['languages'].value ?? []));
-    formData.append('gender', formControls['gender'].value ?? '');
-    formData.append('phonePrefix', formControls['phonePrefix'].value ?? '');
-    formData.append('phoneNumber', formControls['phoneNumber'].value ?? '');
-    formData.append('vehicleType', formControls['vehicleType'].value ?? '');
-    formData.append('vehicleNumber', formControls['vehicleNumber'].value ?? '');
-    formData.append('kycDocType', formControls['kycDocType'].value ?? '');
     
-    
-    const otherFormControls = this.secondFormGroup.controls;
-    formData.append('otherDocType', otherFormControls['otherDocType'].value ?? ''); 
-
-
-    const photoFile = formControls['photo'].value;
-    if (photoFile) formData.append('photo', photoFile);
-
-    const kycFile = formControls['kycDocument'].value;
-    if (kycFile) formData.append('kycDocument', kycFile);
-
-    const otherFile = otherFormControls['otherDocument'].value;
-    if (otherFile) formData.append('otherDocument', otherFile);
-    else formData.append('otherDocument', '');
-
-
-    console.log(this.firstFormGroup.value)
-    console.log(this.secondFormGroup.value)
-
-
-    this.http.patch(`http://localhost:3000/api/helpers/${this.id}`, formData).subscribe({
-      next: (res: any) => {
-        console.log('Updated!', res);
-
-        this.firstFormGroup.reset();
-        this.secondFormGroup.reset();
-
-        this.selectedKycFile = null;
-        this.photoUrl = '';
-
-        const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
-        fileInputs.forEach((id) => {
-          const el = document.getElementById(id) as HTMLInputElement;
-          if (el) el.value = '';
-        });
-
-        this.router.navigate(['../'], { state: { showToast: true } });
-      },
-      error: (err: any) => console.error('Failed to update', err)
-    });
   }
   
 }
-
-
-  createForm(helper: any){
-
-    this.firstFormGroup.patchValue({
-      fullName: helper.fullName,
-      email: helper.email,
-      services: helper.services,
-      organization: helper.organization,
-      languages: helper.languages,
-      gender: helper.gender,
-      phonePrefix: helper.phonePrefix,
-      phoneNumber: helper.phoneNumber,
-      vehicleType: helper.vehicleType,
-      vehicleNumber: helper.vehicleNumber,
-      photo: helper.photo || null, // keep as string for display; file upload is handled separately
-      kycDocument: helper.kycDocument || null,
-      kycDocType: helper.kycDocType
-    });
-
-    this.secondFormGroup.patchValue({
-      otherDocument: helper.otherDocument || null,
-      otherDocType: helper.otherDocType
-    });
-
-    const vehicleTypeControl = this.firstFormGroup.get('vehicleType');
-    const vehicleNumberControl = this.firstFormGroup.get('vehicleNumber');
-
-    vehicleTypeControl?.valueChanges.pipe(startWith(vehicleTypeControl.value)).subscribe(value => {
-        if (value && value !== 'none') {
-          vehicleNumberControl?.setValidators([Validators.required]);
-        } else {
-          vehicleNumberControl?.clearValidators();
-          vehicleNumberControl?.setValue('');
-        }
-        vehicleNumberControl?.updateValueAndValidity();
-    });
-
-    this.loadHelperData(helper);
-  }
-
-  loadHelperData(helper: any): void {
-    const BASE_URL = 'http://localhost:3000/';
-
-    const makeFullUrl = (path: string): string => {
-      return path.startsWith('http') ? path : `${BASE_URL}${path}`;
-    };
-
-    console.log('KYC Path from backend:', helper.kycDocument);
-
-    if (helper.kycDocument) {
-      const kycUrl = makeFullUrl(helper.kycDocument);
-      this.fileutils.loadFileAsFile(kycUrl).subscribe(file => {
-        this.selectedKycFile = file;
-        console.log('KYC File loaded:', this.selectedKycFile);
-      });
-    }
-
-    if (helper.otherDocument) {
-      const otherUrl = makeFullUrl(helper.otherDocument);
-      this.fileutils.loadFileAsFile(otherUrl).subscribe(file => {
-        this.selectedOtherFile = file;
-        console.log('Other File loaded:', this.selectedOtherFile);
-      });
-    }
-
-    if (helper.photo) {
-      const PhotoUrl = makeFullUrl(helper.photo);
-      this.fileutils.loadPhotoAsBase64(PhotoUrl).subscribe(base64 => {
-        this.photoUrl = base64;
-        console.log('Photo (Base64) loaded');
-      });
-    }
-  }
-}
-
-
-
-
-
-
-//   submitForm(): void {
-//     const formData = new FormData();
-
-//     if(this.form.get('vehicleType')?.value === 'none'){
-//       this.form.patchValue({ vehicleNumber: ' '})
-//     }
-
-//     const formControls = this.form.controls;
-//     formData.append('fullName', formControls['fullName'].value ?? '');
-//     formData.append('email', formControls['email'].value ?? '');
-//     formData.append('services', formControls['services'].value ?? '');
-//     formData.append('organization', formControls['organization'].value ?? '');
-//     formData.append('languages', JSON.stringify(formControls['languages'].value ?? []));
-//     formData.append('gender', formControls['gender'].value ?? '');
-//     formData.append('phonePrefix', formControls['phonePrefix'].value ?? '');
-//     formData.append('phoneNumber', formControls['phoneNumber'].value ?? '');
-//     formData.append('vehicleType', formControls['vehicleType'].value ?? '');
-//     formData.append('vehicleNumber', formControls['vehicleNumber'].value ?? '');
-//     formData.append('kycDocType', formControls['kycDocType'].value ?? '');
-//     formData.append('otherDocType', formControls['otherDocType'].value ?? ''); 
-    
-//     const photoFile = formControls['photo'].value;
-//     if (photoFile) formData.append('photo', photoFile);
-
-//     const kycFile = formControls['kycDocument'].value;
-//     if (kycFile) formData.append('kycDocument', kycFile);
-
-//     const otherFile = formControls['otherDocument'].value;
-//     if (otherFile) formData.append('otherDocument', otherFile);
-
-//     console.log(this.form.value)
-
-//     this.http.patch(`http://localhost:3000/api/helpers/${this.id}`, formData).subscribe({
-//       next: (res: any) => {
-//         console.log('Updated!', res);
-
-//         this.form.reset();
-
-//         this.kycFile = null;
-//         this.delPhotoUrl = '';
-
-//         const fileInputs = ['photoInput', 'kycInput', 'otherInput'];
-//         fileInputs.forEach((id) => {
-//           const el = document.getElementById(id) as HTMLInputElement;
-//           if (el) el.value = '';
-//         });
-
-//         this.router.navigate(['../'], { state: { showToast: true } });
-//       },
-//       error: (err: any) => console.error('Failed to update', err)
-//     });
-
-//   }
-
-
